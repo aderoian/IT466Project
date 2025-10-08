@@ -45,6 +45,7 @@ int main(int argc,char *argv[])
     Texture *texture;
     float theta = 0;
     GFC_Vector3D cam = {0,50,0};
+    GFC_Vector3D light = {30, 30, 30};
     GFC_Matrix4 id,dinoM;
 
     //initializtion    
@@ -88,7 +89,7 @@ int main(int argc,char *argv[])
         gf3d_camera_update_view();
         gf3d_vgraphics_render_start();
                 //3D draws
-                gf3d_mesh_draw(mesh,dinoM,GFC_COLOR_WHITE,texture);
+                gf3d_mesh_draw(mesh,dinoM,GFC_COLOR_WHITE,texture, light, GFC_COLOR_WHITE);
 
                 //2D draws
                 // gf2d_sprite_draw_image(bg,gfc_vector2d(0,0));

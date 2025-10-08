@@ -140,7 +140,7 @@ Mesh *gf3d_mesh_load(const char *filename) {
 /**
  * @brief draw a mesh given the parameters
  */
-void gf3d_mesh_draw(Mesh *mesh,GFC_Matrix4 modelMat,GFC_Color mod,Texture *texture) {
+void gf3d_mesh_draw(Mesh *mesh,GFC_Matrix4 modelMat,GFC_Color mod,Texture *texture, GFC_Vector3D lightPos, GFC_Color lightCol) {
     MeshUBO ubo = {0};
     slog("drawing mesh");
     if (!mesh) {
@@ -157,8 +157,8 @@ void gf3d_mesh_draw(Mesh *mesh,GFC_Matrix4 modelMat,GFC_Color mod,Texture *textu
     gf3d_vgraphics_get_projection_matrix(&ubo.proj);
     ubo.color = gfc_color_to_vector4f(mod);
     ubo.camera = gfc_vector3dw(gf3d_camera_get_position(), 1.0);
-    //ubo.lightPos = gfc_vector3dw(pos, 1.0);
-    //ubo.lightCol = gfc_color_to_vector4f(col);
+    ubo.lightPos = gfc_vector3dw(lightPos, 1.0);
+    ubo.lightColor = gfc_color_to_vector4f(lightCol);
 
     //ubo = gf3d_mesh_get_ubo(modelMat, mod);
     gfc_matrix4_slog(modelMat);

@@ -26,8 +26,8 @@ layout(location = 1) out vec3 outNormal;
 layout(location = 2) out vec4 colorMod;
 layout(location = 3) out vec4 worldPosition;
 layout(location = 4) out vec4 cameraPos;
-//layout(location = 5) out vec4 lightPos;
-//layout(location = 6) out vec4 lightColor;
+layout(location = 5) out vec4 lightPos;
+layout(location = 6) out vec4 lightColor;
 
 void main()
 {
@@ -46,6 +46,6 @@ void main()
     colorMod = ubo.color;
     cameraPos = ubo.camera;
     fragTexCoord = inTexCoord;
-    //lightPos = ubo.lightPos;
-    //lightColor = ubo.lightColor;
+    lightPos = ubo.lightPos;
+    lightColor = ubo.lightColor;
 }
