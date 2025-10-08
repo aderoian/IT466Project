@@ -88,6 +88,7 @@ GFC_Vector3D vgraphics_3d_position_to_screen_depth(GFC_Vector3D position);
  * @param view [output]
  */
 void gf3d_vgraphics_get_view(GFC_Matrix4 *view);
+void gf3d_vgraphics_set_view(GFC_Matrix4 *view);
 
 
 void gf3d_vgraphics_clear();
