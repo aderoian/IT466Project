@@ -52,7 +52,7 @@ typedef struct
 
 typedef struct
 {
-    //GFC_TextLine        filename;
+    GFC_TextLine        filename;
     Uint32              _refCount;
     GFC_List           *primitives;
     //GFC_Box             bounds;

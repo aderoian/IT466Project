@@ -81,26 +81,41 @@ void gf3d_mesh_manager_close() {
 }
 
 Mesh *gf3d_mesh_new() {
-    slog("creating new mesh");
     int i;
     for (i = 0; i < mesh_manager.mesh_count; i++)
     {
         if (mesh_manager.mesh_list[i]._refCount > 0)continue;
         memset(&mesh_manager.mesh_list[i], 0, sizeof(Mesh));
         mesh_manager.mesh_list[i]._refCount = 1;
-        slog("created new mesh");
         return &mesh_manager.mesh_list[i];
     }
     slog("gf3d_mesh_new: no free slots for new meshes");
     return NULL;
 }
 
+Mesh *gf3d_mesh_load_from_filename(const char *filename) {
+    int i;
+    for (i = 0; i < mesh_manager.mesh_count; i++)
+    {
+        if (mesh_manager.mesh_list[i]._refCount <= 0)continue;
+        if (gfc_stricmp(mesh_manager.mesh_list[i].filename, filename) == 0)
+            return &mesh_manager.mesh_list[i];
+    }
+
+    return NULL;
+}
+
 Mesh *gf3d_mesh_load(const char *filename) {
-    slog("loading mesh");
     Mesh* mesh;
     ObjData* data;
     MeshPrimitive* prim;
     if (!filename) return NULL;
+
+    mesh = gf3d_mesh_load_from_filename(filename);
+    if (mesh) {
+        mesh->_refCount++;
+        return mesh;
+    }
 
     // Create ourselves a mesh
     mesh = gf3d_mesh_new();
@@ -115,8 +130,6 @@ Mesh *gf3d_mesh_load(const char *filename) {
         return NULL;
     }
 
-    slog("loaded obj data");
-
     // Create a mesh primitive which represents the obj data as a sub-mesh
     prim = gf3d_mesh_primitive_new();
     if (!prim) {
@@ -125,15 +138,13 @@ Mesh *gf3d_mesh_load(const char *filename) {
         return NULL;
     }
 
-    slog("created primitive");
-
     // Populate buffers with mesh data (faces & verts)
     gfc_list_append(mesh->primitives, prim);
     prim->objData = data;
 
-    slog("attempting to create buffers");
     gf3d_mesh_create_vertex_buffer_from_vertices(prim);
     gf3d_mesh_create_face_buffer_from_vertices(prim);
+    gfc_line_cpy(mesh->filename, filename);
     return mesh;
 }
 
@@ -142,7 +153,6 @@ Mesh *gf3d_mesh_load(const char *filename) {
  */
 void gf3d_mesh_draw(Mesh *mesh,GFC_Matrix4 modelMat,GFC_Color mod,Texture *texture, GFC_Vector3D lightPos, GFC_Color lightCol) {
     MeshUBO ubo = {0};
-    slog("drawing mesh");
     if (!mesh) {
         slog("Cannot draw NULL mesh");
         return;
@@ -160,8 +170,6 @@ void gf3d_mesh_draw(Mesh *mesh,GFC_Matrix4 modelMat,GFC_Color mod,Texture *textu
     ubo.lightPos = gfc_vector3dw(lightPos, 1.0);
     ubo.lightColor = gfc_color_to_vector4f(lightCol);
 
-    //ubo = gf3d_mesh_get_ubo(modelMat, mod);
-    gfc_matrix4_slog(modelMat);
     gf3d_mesh_queue_render(mesh,mesh_manager.pipe,&ubo,texture);
 }
 
@@ -171,7 +179,6 @@ void gf3d_mesh_queue_primitive(MeshPrimitive* primitive, Pipeline* pipe, MeshUBO
         return;
     }
 
-    slog("pipeline queue prim");
     gf3d_pipeline_queue_render(pipe, primitive->vertexBuffer, primitive->vertexCount,
         primitive->faceBuffer, ubo, texture);
 }
@@ -229,7 +236,7 @@ void gf3d_mesh_free(Mesh *mesh) {
     }
 
     mesh->_refCount--;
-    if (mesh->_refCount-- <= 0) {
+    if (mesh->_refCount <= 0) {
         gf3d_mesh_destroy(mesh);
     }
 }
