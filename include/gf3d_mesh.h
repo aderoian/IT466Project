@@ -29,6 +29,14 @@ typedef struct
 
 typedef struct
 {
+    GFC_Matrix4     model;
+    GFC_Matrix4     view;
+    GFC_Matrix4     proj;
+    GFC_Vector4D    color;
+}SkyBoxUBO;
+
+typedef struct
+{
     GFC_Vector3D vertex;
     GFC_Vector3D normal;
     GFC_Vector2D texel;
@@ -86,6 +94,11 @@ Mesh *gf3d_mesh_load(const char *filename);
 void gf3d_mesh_draw(Mesh *mesh,GFC_Matrix4 modelMat,GFC_Color mod,Texture *texture, GFC_Vector3D lightPos, GFC_Color lightCol);
 
 /**
+ * @brief draw a skybox given the parameters
+ */
+void gf3d_mesh_skybox_draw(Mesh *mesh,GFC_Matrix4 modelMat,GFC_Color mod,Texture *texture);
+
+/**
  * @brief allocate a zero initialized mesh primitive
  * @return NULL on error or the primitive
  */
@@ -122,6 +135,12 @@ void gf3d_mesh_create_vertex_buffer_from_vertices(MeshPrimitive *primitive);
  * @return NULL on error or the pipeline in question
  */
 Pipeline *gf3d_mesh_get_pipeline();
+
+/**
+ * @brief get the pipeline that is used to render the skybox
+ * @return NULL on error or the pipeline in question
+ */
+Pipeline *gf3d_mesh_get_skybox_pipeline();
 
 /**
  * @brief given a model matrix and basic color, build the meshUBO needed to render a model

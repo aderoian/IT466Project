@@ -22,6 +22,8 @@ typedef struct Entity_s {
     void (*draw)(struct Entity_s *self);
     void (*think)(struct Entity_s *self);
     void (*update)(struct Entity_s *self);
+    void (*free)(struct Entity_s *self);
+    void* data;
 } Entity;
 
 void entity_close();

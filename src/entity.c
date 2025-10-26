@@ -54,6 +54,7 @@ Entity* entity_new() {
 void entity_free(Entity* ent) {
     if (!ent) return;
 
+    if (ent->free) ent->free(ent);
     gf3d_mesh_free(ent->mesh);
     gf3d_texture_free(ent->texture);
     memset(ent,0,sizeof(Entity));
@@ -62,6 +63,8 @@ void entity_free(Entity* ent) {
 void entity_draw(Entity* ent, GFC_Vector3D lightPos, GFC_Color lightColor) {
     GFC_Matrix4 modelMat = {0};
     if (!ent) return;
+
+    //slog("Drawing %s", ent->name);
 
     gfc_matrix4_from_vectors(
         modelMat,

@@ -24,6 +24,7 @@
 #include "gf3d_mesh.h"
 #include "entity.h"
 #include "monster.h"
+#include "player.h"
 
 extern int __DEBUG;
 
@@ -44,7 +45,12 @@ int main(int argc,char *argv[])
 {
     //local variables
     int i;
-    GFC_Vector3D cam = {600,600,100};
+    Mesh* mesh;
+    Texture* texture;
+    Entity* player;
+    GFC_Vector3D playerPos = {0,0,0};
+    GFC_Matrix4 skyboxMat = {0};
+    GFC_Vector3D cam = {0,-50,50};
     GFC_Vector3D light = {100, 25, 30};
 
     //initializtion    
@@ -70,12 +76,19 @@ int main(int argc,char *argv[])
 
     entity_init(1024);
 
-    // main game loop
-    gf3d_camera_look_at(gfc_vector3d(0,0,0),&cam);
+    gfc_matrix4_identity(skyboxMat);
+    mesh = gf3d_mesh_load("models/sky/sky.obj");
+    texture = gf3d_texture_load("models/sky/sky.png");
 
-    for (i = 0; i < 500; i++) {
-        monster_spawn(gfc_vector3d(gfc_random_int(500),gfc_random_int(500),0), GFC_COLOR_WHITE);
-    }
+    // main game loop
+    //gf3d_camera_look_at(gfc_vector3d(0,0,0),&cam);
+
+    // for (i = 0; i < 500; i++) {
+    //     monster_spawn(gfc_vector3d(gfc_random_int(250),gfc_random_int(250),0),
+    //                   gfc_color8(gfc_random_int(256), gfc_random_int(256), gfc_random_int(256), 255));
+    // }
+
+    player = init_player(playerPos, GFC_COLOR_WHITE);
     while(!_done)
     {
         gfc_input_update();
@@ -90,6 +103,7 @@ int main(int argc,char *argv[])
         gf3d_camera_update_view();
         gf3d_vgraphics_render_start();
                 //3D draws
+                gf3d_mesh_skybox_draw(mesh,skyboxMat,GFC_COLOR_WHITE,texture);
                 entity_draw_all(light, GFC_COLOR_WHITE);
 
                 //2D draws
