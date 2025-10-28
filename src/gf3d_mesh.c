@@ -168,7 +168,7 @@ Mesh *gf3d_mesh_load(const char *filename) {
 void gf3d_mesh_draw(Mesh *mesh,GFC_Matrix4 modelMat,GFC_Color mod,Texture *texture, GFC_Vector3D lightPos, GFC_Color lightCol) {
     MeshUBO ubo = {0};
     if (!mesh) {
-        slog("Cannot draw NULL mesh");
+        if(__DEBUG) slog("Cannot draw NULL mesh");
         return;
     }
 
@@ -190,7 +190,7 @@ void gf3d_mesh_draw(Mesh *mesh,GFC_Matrix4 modelMat,GFC_Color mod,Texture *textu
 void gf3d_mesh_skybox_draw(Mesh *mesh,GFC_Matrix4 modelMat,GFC_Color mod,Texture *texture) {
     SkyBoxUBO ubo = {0};
     if (!mesh || !texture) {
-        slog("Cannot draw NULL mesh and/or texture");
+        if(__DEBUG) slog("Cannot draw NULL mesh and/or texture");
         return;
     }
 

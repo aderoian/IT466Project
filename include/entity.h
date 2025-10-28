@@ -7,6 +7,8 @@
 #include "gf3d_mesh.h"
 #include "gf3d_texture.h"
 
+#include "quaternion.h"
+
 typedef struct Entity_s {
     Uint8 _inuse;
     GFC_TextLine name;
@@ -18,6 +20,7 @@ typedef struct Entity_s {
     GFC_Vector3D rotation;
     GFC_Vector3D scale;
     GFC_Vector3D velocity;
+    Quaternion qRotation;
     GFC_Box bounds;
     void (*draw)(struct Entity_s *self);
     void (*think)(struct Entity_s *self);

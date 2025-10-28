@@ -50,7 +50,7 @@ int main(int argc,char *argv[])
     Entity* player;
     GFC_Vector3D playerPos = {0,0,0};
     GFC_Matrix4 skyboxMat = {0};
-    GFC_Vector3D cam = {0,-50,50};
+    GFC_Vector3D cam = {0,-50,0};
     GFC_Vector3D light = {100, 25, 30};
 
     //initializtion    
@@ -81,7 +81,7 @@ int main(int argc,char *argv[])
     texture = gf3d_texture_load("models/sky/sky.png");
 
     // main game loop
-    //gf3d_camera_look_at(gfc_vector3d(0,0,0),&cam);
+    gf3d_camera_look_at(gfc_vector3d(0,0,0),&cam);
 
     // for (i = 0; i < 500; i++) {
     //     monster_spawn(gfc_vector3d(gfc_random_int(250),gfc_random_int(250),0),
@@ -89,6 +89,7 @@ int main(int argc,char *argv[])
     // }
 
     player = init_player(playerPos, GFC_COLOR_WHITE);
+    camera_entity_spawn(cam);
     while(!_done)
     {
         gfc_input_update();

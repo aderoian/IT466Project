@@ -7,20 +7,16 @@
 
 void player_update(Entity* ent) {
     if (!ent) return;
-    if (gfc_input_command_down("walkforward")) {
-        slog("walkforward");
-        ent->position.y += PLAYER_SPEED;
-    } else if (gfc_input_command_down("walkback")) {
-        slog("walkback");
-        ent->position.y -= PLAYER_SPEED;
-    } else if (gfc_input_command_down("walkleft")) {
-        slog("walkleft");
-        ent->position.x -= PLAYER_SPEED;
-    } else if (gfc_input_command_down("walkright")) {
-        slog("walkright");
-        ent->position.x += PLAYER_SPEED;
-    }
-    slog("%f, %f, %f", gfc_vector3d_to_slog(ent->position));
+    // if (gfc_input_command_down("walkforward")) {
+    //     ent->position.y += PLAYER_SPEED;
+    // } else if (gfc_input_command_down("walkback")) {
+    //     ent->position.y -= PLAYER_SPEED;
+    // } else if (gfc_input_command_down("walkleft")) {
+    //     ent->position.x -= PLAYER_SPEED;
+    // } else if (gfc_input_command_down("walkright")) {
+    //     ent->position.x += PLAYER_SPEED;
+    // }
+    //slog("%f, %f, %f", gfc_vector3d_to_slog(ent->position));
 }
 
 void player_free(Entity* ent) {
@@ -52,6 +48,6 @@ Entity* init_player(GFC_Vector3D position, GFC_Color color) {
     self->update = player_update;
 
 
-    slog("%f, %f, %f", gfc_vector3d_to_slog(self->position));
+    //slog("%f, %f, %f", gfc_vector3d_to_slog(self->position));
     return self;
 }

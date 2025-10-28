@@ -68,6 +68,23 @@ void quaternion_divide_s(Quaternion* dest, Quaternion q, float s) {
     dest->w = q.w / s;
 }
 
+void quaternion_rotate(Quaternion* q, GFC_Vector3D axis, float a) {
+    Quaternion r = {0};
+    float half, s;
+    gfc_vector3d_normalize(&axis);
+
+    // Q_rot = q * r
+
+    half = a * 0.5f;
+    s = sinf(half);
+    r.x = axis.x * s;
+    r.y = axis.y * s;
+    r.z = axis.z * s;
+    r.w = cosf(half);
+
+    quaternion_multiply_q(q, *q, r);
+}
+
 void quaternion_rotate_q(Quaternion* dest, Quaternion a, Quaternion b) {
     quaternion_multiply_q(dest, a, b);
     quaternion_conjugate(&a, a);
@@ -103,4 +120,23 @@ void quaternion_from_euler_angles(Quaternion* dest, float x, float y, float z) {
     *dest = yaw;
     quaternion_multiply_q(dest, *dest, pitch);
     quaternion_multiply_q(dest, *dest, roll);
+}
+
+void quaternion_euler_angles_from(GFC_Vector3D* out, Quaternion q)
+{
+    // q = (x, y, z, w)
+    float sinr_cosp, cosr_cosp, sinp, siny_cosp, cosy_cosp;
+    sinr_cosp = 2.0f * (q.w * q.x + q.y * q.z);
+    cosr_cosp = 1.0f - 2.0f * (q.x * q.x + q.y * q.y);
+    out->x = atan2f(sinr_cosp, cosr_cosp);
+
+    sinp = 2.0f * (q.w * q.y - q.z * q.x);
+    if (fabsf(sinp) >= 1)
+        out->y = copysignf(M_PI / 2.0f, sinp);
+    else
+        out->y = asinf(sinp);
+
+    siny_cosp = 2.0f * (q.w * q.z + q.x * q.y);
+    cosy_cosp = 1.0f - 2.0f * (q.y * q.y + q.z * q.z);
+    out->z = atan2f(siny_cosp, cosy_cosp);
 }

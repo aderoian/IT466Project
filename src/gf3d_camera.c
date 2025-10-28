@@ -46,6 +46,39 @@ void gf3d_camera_update_view()
     gf3d_vgraphics_set_view(gf3d_camera.cameraMat);
 }
 
+void gf3d_camera_update_view_q()
+{
+    // GFC_Vector3D xaxis,yaxis,zaxis,position;
+    // GFC_Vector4D q;
+    //
+    // position.x = gf3d_camera.position.x;
+    // position.y = -gf3d_camera.position.z;        //inverting for Z-up
+    // position.z = gf3d_camera.position.y;
+    //
+    // gfc_matrix4_identity(gf3d_camera.cameraMat);
+    //
+    // quaternion_rotate_v(q, gfc_vector3d(1,0,0), &xaxis);
+    // quaternion_rotate_v(q, gfc_vector3d(0,1,0), &yaxis);
+    // quaternion_rotate_v(q, gfc_vector3d(0,0,1), &zaxis);
+    //
+    // gf3d_camera.cameraMat[0][0] = xaxis.x;
+    // gf3d_camera.cameraMat[0][1] = yaxis.x;
+    // gf3d_camera.cameraMat[0][2] = zaxis.x;
+    //
+    // gf3d_camera.cameraMat[1][0] = xaxis.z;
+    // gf3d_camera.cameraMat[1][1] = yaxis.z;
+    // gf3d_camera.cameraMat[1][2] = zaxis.z;
+    //
+    // gf3d_camera.cameraMat[2][0] = -xaxis.y;
+    // gf3d_camera.cameraMat[2][1] = -yaxis.y;
+    // gf3d_camera.cameraMat[2][2] = -zaxis.y;
+    //
+    // gf3d_camera.cameraMat[3][0] = gfc_vector3d_dot_product(xaxis, position);
+    // gf3d_camera.cameraMat[3][1] = gfc_vector3d_dot_product(yaxis, position);
+    // gf3d_camera.cameraMat[3][2] = gfc_vector3d_dot_product(zaxis, position);
+    // gf3d_vgraphics_set_view(gf3d_camera.cameraMat);
+}
+
 GFC_Vector3D gf3d_camera_get_position()
 {
     GFC_Vector3D position;

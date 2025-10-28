@@ -142,6 +142,8 @@ void quaternion_multiply_v(Quaternion* dest, Quaternion q, GFC_Vector3D v);
  */
 void quaternion_divide_s(Quaternion* dest, Quaternion q, float s);
 
+void quaternion_rotate(Quaternion* q, GFC_Vector3D axis, float a);
+
 /**
  * @brief Rotates quaternion a by quaternion b.
  * @param dest [out] The quaternion to store the rotated result
@@ -196,4 +198,5 @@ void quaternion_from_axis_angle(Quaternion* dest, GFC_Vector3D axis, float a);
  */
 void quaternion_from_euler_angles(Quaternion* dest, float x, float y, float z);
 
+void quaternion_euler_angles_from(GFC_Vector3D* out, Quaternion q);
 #endif
