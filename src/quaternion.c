@@ -1,3 +1,5 @@
+#include "simple_logger.h"
+
 #include "quaternion.h"
 
 Quaternion quaternion_create(float x, float y, float z, float w) {
@@ -42,8 +44,8 @@ void quaternion_normalize(Quaternion* q) {
 
 void quaternion_multiply_q(Quaternion* dest, Quaternion a, Quaternion b) {
     dest->x = a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y;
-    dest->y = a.w * b.y + a.y * b.w + a.z * b.x - a.x * b.z;
-    dest->z = a.w * b.z + a.z * b.w + a.x * b.y - a.y * b.x;
+    dest->y = a.w * b.y - a.x * b.z + a.y * b.w + a.z * b.x;
+    dest->z = a.w * b.z + a.x * b.y - a.y * b.x + a.z * b.w;
     dest->w = a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z;
 }
 
@@ -86,16 +88,20 @@ void quaternion_rotate(Quaternion* q, GFC_Vector3D axis, float a) {
 }
 
 void quaternion_rotate_q(Quaternion* dest, Quaternion a, Quaternion b) {
-    quaternion_multiply_q(dest, a, b);
-    quaternion_conjugate(&a, a);
-    quaternion_multiply_q(dest, *dest, a);
+    Quaternion a_conj = a, tmp;
+    quaternion_conjugate(&a_conj, a_conj);
+    quaternion_multiply_q(&tmp, a, b);
+    quaternion_multiply_q(dest, tmp, a_conj);
 }
 
-void quaternion_rotate_v(GFC_Vector3D* dest, Quaternion a, GFC_Vector3D v) {
-    Quaternion tmp = {0};
-    quaternion_multiply_v(&tmp, a, v);
-    quaternion_conjugate(&a, a);
-    quaternion_multiply_q(&tmp, tmp, a);
+void quaternion_rotate_v(GFC_Vector3D* dest, Quaternion q, GFC_Vector3D v) {
+    quaternion_normalize(&q);
+
+    Quaternion vq = { v.x, v.y, v.z, 0.0f }, q_conj, tmp;
+    quaternion_conjugate(&q_conj, q);
+    quaternion_multiply_q(&tmp, q, vq);       // tmp = q * v
+    quaternion_multiply_q(&tmp, tmp, q_conj); // tmp = tmp * q*
+
     dest->x = tmp.x;
     dest->y = tmp.y;
     dest->z = tmp.z;

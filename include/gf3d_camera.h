@@ -3,13 +3,16 @@
 
 #include "gfc_matrix.h"
 
+#include "quaternion.h"
+
 typedef struct
 {
     GFC_Matrix4     cameraMat;          //final matrix to become the view matrix
     GFC_Matrix4     cameraMatInv;       //final matrix to become the inverse view matrix
     GFC_Vector3D    scale;              //for building camera matrix
     GFC_Vector3D    position;           //for building camera matrix
-    GFC_Vector3D    rotation;           //pitch, roll, yaw for building camera matrix
+    GFC_Vector3D    rotation;
+    Quaternion      qRotation;//pitch, roll, yaw for building camera matrix
     float           moveStep;           //when using gf3d_camera_controls_update, this is how much the camera will move per frame
     float           rotateStep;         //when using gf3d_camera_controls_update, this is how much the camera will move per frame
     int             autoPan;            //if true, the amount gf3d_camera_controls_update will pan the camera around
@@ -26,6 +29,12 @@ typedef struct
  * @note: Do not use if you are tailoring the camera matrix by hand
  */
 void gf3d_camera_update_view();
+
+/**
+ * @brief take the position,scale, and quaternion rotation to calculate the view matrix
+ * @note: Do not use if you are tailoring the camera matrix by hand
+ */
+void gf3d_camera_update_view_q();
 
 /**
  * @brief get the current camera view
@@ -220,6 +229,8 @@ void gf3d_camera_set_scale(GFC_Vector3D scale);
  * @param rotation the new rotation for the camera (pitch[x], roll[y], yaw[z])
  */
 void gf3d_camera_set_rotation(GFC_Vector3D rotation);
+
+void gf3d_camera_set_rotation_q(Quaternion rotation);
 
 /**
  * @brief get the rotation angles of the camera that can be used with gfc_vector3d_angle_vectors()

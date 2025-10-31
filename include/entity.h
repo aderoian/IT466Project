@@ -15,14 +15,11 @@ typedef struct Entity_s {
     Mesh* mesh;
     Texture *texture;
     GFC_Color color;
-    GFC_Matrix4 matrix;
     GFC_Vector3D position;
-    GFC_Vector3D rotation;
+    Quaternion rotation;
     GFC_Vector3D scale;
     GFC_Vector3D velocity;
-    Quaternion qRotation;
     GFC_Box bounds;
-    void (*draw)(struct Entity_s *self);
     void (*think)(struct Entity_s *self);
     void (*update)(struct Entity_s *self);
     void (*free)(struct Entity_s *self);

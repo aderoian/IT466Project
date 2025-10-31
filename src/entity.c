@@ -1,5 +1,6 @@
 #include "simple_logger.h"
 #include "entity.h"
+#include "quaternion.h"
 
 typedef struct {
     Entity* entities;
@@ -43,6 +44,7 @@ Entity* entity_new() {
     for (i = 0; i < entity_manager.count; i++) {
         if (entity_manager.entities[i]._inuse > 0)continue;
         entity_manager.entities[i]._inuse = 1;
+        quaternion_identity(&entity_manager.entities[i].rotation);
         entity_manager.entities[i].color = GFC_COLOR_WHITE;
         entity_manager.entities[i].scale = gfc_vector3d(1, 1, 1);
         return &entity_manager.entities[i];
@@ -64,9 +66,7 @@ void entity_draw(Entity* ent, GFC_Vector3D lightPos, GFC_Color lightColor) {
     GFC_Matrix4 modelMat = {0};
     if (!ent) return;
 
-    //slog("Drawing %s", ent->name);
-
-    gfc_matrix4_from_vectors(
+    gfc_matrix4_from_vectors_q(
         modelMat,
         ent->position,
         ent->rotation,

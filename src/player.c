@@ -7,16 +7,41 @@
 
 void player_update(Entity* ent) {
     if (!ent) return;
-    // if (gfc_input_command_down("walkforward")) {
-    //     ent->position.y += PLAYER_SPEED;
-    // } else if (gfc_input_command_down("walkback")) {
-    //     ent->position.y -= PLAYER_SPEED;
-    // } else if (gfc_input_command_down("walkleft")) {
-    //     ent->position.x -= PLAYER_SPEED;
-    // } else if (gfc_input_command_down("walkright")) {
-    //     ent->position.x += PLAYER_SPEED;
-    // }
-    //slog("%f, %f, %f", gfc_vector3d_to_slog(ent->position));
+    Quaternion* rot, delta;
+    float half, dx = 0, dy = 0, dz = 0;
+
+    rot = &ent->rotation;
+    if (gfc_input_command_down("walkforward")) {
+        dx += 0.11f;
+    }
+    if (gfc_input_command_down("walkback")) {
+        dx -= 0.11f;
+    }
+    if (gfc_input_command_down("walkleft")) {
+        dz += 0.11f;
+    }
+    if (gfc_input_command_down("walkright")) {
+        dz -= 0.11f;
+    }
+    if (gfc_input_command_down("rollleft")) {
+        dy -= 0.11f;
+    }
+    if (gfc_input_command_down("rollright")) {
+        dy += 0.11f;
+    }
+
+    half = dx * 0.5f;
+    delta = quaternion_create(sinf(half), 0, 0, cosf(half));
+    quaternion_multiply_q(rot, *rot, delta);
+
+    half = dy * 0.5f;
+    delta = quaternion_create(0, sinf(half), 0, cosf(half));
+    quaternion_multiply_q(rot, *rot, delta);
+
+    half = dz * 0.5f;
+    delta = quaternion_create(0, 0, sinf(half), cosf(half));
+    quaternion_multiply_q(rot, *rot, delta);
+    quaternion_normalize(rot);
 }
 
 void player_free(Entity* ent) {
@@ -41,13 +66,10 @@ Entity* init_player(GFC_Vector3D position, GFC_Color color) {
     }
     self->color = color;
     self->position = position;
-    self->rotation = gfc_vector3d(0, 0, 90);
 
     self->data = data;
     self->free = player_free;
     self->update = player_update;
 
-
-    //slog("%f, %f, %f", gfc_vector3d_to_slog(self->position));
     return self;
 }
