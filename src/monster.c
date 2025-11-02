@@ -2,8 +2,10 @@
 #include "gfc_vector.h"
 #include "gfc_color.h"
 #include "gf3d_texture.h"
-#include "entity.h"
 #include "gf3d_mesh.h"
+
+#include "physics.h"
+#include "entity.h"
 
 #include "monster.h"
 
@@ -13,14 +15,17 @@ Entity* monster_spawn(GFC_Vector3D position, GFC_Color color) {
     if (!self) return NULL;
 
     // populate monster
-    gfc_line_cpy(self->name, "not agumon");
+    gfc_line_cpy(self->name, "placeholder obstacle");
     self->mesh = gf3d_mesh_load("models/dino/dino.obj");
     self->texture = gf3d_texture_load("models/dino/dino.png");
     self->color = color;
     self->position = position;
     self->rotation = quaternion_create(0, 0, 0, 1);
-    self->think = monster_think;
-    self->update = monster_update;
+
+    self->physicsBody = physics_body_create();
+    self->physicsBody->flags |= FLAG_NOT_COLLIDABLE;
+    self->physicsBody->owner = self;
+    self->physicsBody->position = position;
 
     return self;
 }

@@ -48,6 +48,10 @@ Entity* camera_entity_spawn(GFC_Vector3D pos, Entity* target, float followBehind
     Entity* entity;
 
     entity = entity_new();
+    if (!entity) {
+        slog("could not create camera entity");
+        return NULL;
+    }
     data = gfc_allocate_array(sizeof(CameraEntityData), 1);
     data->target = target;
     data->followBehind = followBehind;

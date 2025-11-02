@@ -8,6 +8,7 @@
 #include "gf3d_texture.h"
 
 #include "quaternion.h"
+#include "physics.h"
 
 typedef struct Entity_s {
     Uint8 _inuse;
@@ -24,6 +25,7 @@ typedef struct Entity_s {
     void (*update)(struct Entity_s *self);
     void (*free)(struct Entity_s *self);
     void* data;
+    PhysicsBody* physicsBody;
 } Entity;
 
 void entity_close();

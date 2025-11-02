@@ -3,12 +3,13 @@
 
 #include "player.h"
 
-#define PLAYER_SPEED 10.0f
+#define PLAYER_SPEED 500.0f
 
 void player_update(Entity* ent) {
     if (!ent) return;
     Quaternion* rot, delta;
     float half, dx = 0, dy = 0, dz = 0;
+    GFC_Vector3D forward, velocity;
 
     rot = &ent->rotation;
     if (gfc_input_command_down("walkforward")) {
@@ -42,6 +43,12 @@ void player_update(Entity* ent) {
     delta = quaternion_create(0, 0, sinf(half), cosf(half));
     quaternion_multiply_q(rot, *rot, delta);
     quaternion_normalize(rot);
+
+    if (gfc_input_command_down("thrustforward")) {
+        quaternion_rotate_v(&forward, *rot, gfc_vector3d(0,1,0));
+        gfc_vector3d_scale(velocity, forward, PLAYER_SPEED);
+        physics_add_impulse(ent->physicsBody, velocity);
+    }
 }
 
 void player_free(Entity* ent) {
@@ -70,6 +77,11 @@ Entity* init_player(GFC_Vector3D position, GFC_Color color) {
     self->data = data;
     self->free = player_free;
     self->update = player_update;
+
+    self->physicsBody = physics_body_create();
+    self->physicsBody->mass = 100;
+    self->physicsBody->invMass = 1.f / 100.f;
+    self->physicsBody->owner = self;
 
     return self;
 }

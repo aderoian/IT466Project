@@ -1,6 +1,8 @@
 #include "simple_logger.h"
-#include "entity.h"
 #include "quaternion.h"
+
+#include "entity.h"
+#include "physics.h"
 
 typedef struct {
     Entity* entities;
@@ -47,6 +49,7 @@ Entity* entity_new() {
         quaternion_identity(&entity_manager.entities[i].rotation);
         entity_manager.entities[i].color = GFC_COLOR_WHITE;
         entity_manager.entities[i].scale = gfc_vector3d(1, 1, 1);
+        entity_manager.entities[i].physicsBody = NULL;
         return &entity_manager.entities[i];
     }
 

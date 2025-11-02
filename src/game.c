@@ -23,6 +23,7 @@
 #include "gf3d_camera.h"
 #include "gf3d_mesh.h"
 #include "entity.h"
+#include "physics.h"
 #include "monster.h"
 #include "player.h"
 #include "camera_entity.h"
@@ -46,7 +47,8 @@ void exitGame()
 int main(int argc,char *argv[])
 {
     //local variables
-    int i;
+    int i, j, k;
+    float now, then;
     Mesh* mesh;
     Texture* texture;
     Entity* player;
@@ -76,7 +78,8 @@ int main(int argc,char *argv[])
     // bg = gf2d_sprite_load_image("images/bg_flat.png");
     gf2d_mouse_load("actors/mouse.actor");
 
-    entity_init(1024);
+    entity_init(2048);
+    physics_init(2048);
 
     gfc_matrix4_identity(skyboxMat);
     mesh = gf3d_mesh_load("models/sky/sky.obj");
@@ -85,18 +88,37 @@ int main(int argc,char *argv[])
     // main game loop
     //gf3d_camera_look_at(gfc_vector3d(0,0,0),&cam);
 
-    // for (i = 0; i < 500; i++) {
-    //     monster_spawn(gfc_vector3d(gfc_random_int(250),gfc_random_int(250),0),
-    //                   gfc_color8(gfc_random_int(256), gfc_random_int(256), gfc_random_int(256), 255));
-    // }
+    int sep = 75;
+    int size = 10;
+    float start = -((size * sep) / 2);
+    for (i = 0; i < size*sep; i+=sep) {
+        for (j = 0; j < size*sep; j+=sep) {
+            for (k = 0; k < size*sep; k+=sep) {
+                if (start + i == 0 && start + j == 0 && start + k == 0) continue;
+                monster_spawn(gfc_vector3d(start + i, start + j, start + k), gfc_color8(gfc_random_int(256), gfc_random_int(256), gfc_random_int(256), 255));
+            }
+        }
+    }
 
     player = init_player(playerPos, GFC_COLOR_WHITE);
     camera_entity_spawn(cam, player, 50, 10);
+
+    now = SDL_GetTicks() / 1000.f;
     while(!_done)
     {
         gfc_input_update();
         gf2d_mouse_update();
         gf2d_font_update();
+
+        // tick physics
+        then = now;
+        now = SDL_GetTicks() / 1000.f;
+
+        int start = SDL_GetTicks();
+        physics_step(now - then);
+        int end = SDL_GetTicks();
+        //slog("total tick: %d", end-start);
+
 
         // world updates
         entity_think_all();
