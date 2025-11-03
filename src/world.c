@@ -1,0 +1,295 @@
+#include <pthread.h>
+
+#include "simple_logger.h"
+
+#include "gfc_types.h"
+#include "gfc_noise.h"
+#include "gfc_vector.h"
+
+#include "simple_json.h"
+
+#include "world.h"
+#include "celestial_entity.h"
+
+static Universe universe = {0};
+static World world = {0};
+
+void world_init() {
+    world.solarSystem = NULL;
+    world.additionalBodies = gfc_list_new();
+}
+
+void world_despawn_solarSystem();
+
+void world_close() {
+    world_despawn_solarSystem();
+}
+
+void world_load_universe(Universe* universe) {
+    // TODO
+}
+void world_save_universe(Universe* universe) {
+    // TODO
+}
+
+World* world_get() {
+    return &world;
+}
+
+Universe* world_get_universe() {
+    return &universe;
+}
+
+void world_spawn_solarSystem() {
+    int i;
+    SolarSystem* ss = world_get_target_solarSystem();
+    CelestialBody* body;
+    Entity* ent;
+    if (!ss) return;
+
+    for (i = 0; i < ss->numBodies; i++) {
+        body = ss->celestialBodies[i];
+        if (!body) continue;
+        ent = spawn_celestial_entity(body);
+        if (!ent) continue;
+        body->entity = ent;
+    }
+}
+
+void world_despawn_solarSystem() {
+    int i;
+    SolarSystem* ss = world_get_target_solarSystem();
+    CelestialBody* body;
+    if (!ss) return;
+
+    for (i = 0; i < ss->numBodies; i++) {
+        body = ss->celestialBodies[i];
+        if (!body || !body->entity) continue;
+        entity_free(body->entity);
+    }
+}
+
+SolarSystem* world_get_target_solarSystem() {
+    return world.solarSystem;
+}
+
+void world_set_target_solarSystem(SolarSystem* solarSystem) {
+    if (!solarSystem) return;
+    world.solarSystem = solarSystem;
+    world_spawn_solarSystem();
+}
+
+typedef struct SolarSystemTask_s {
+    int width, height;
+    Galaxy** galaxies;
+    int numGalaxies;
+} SolarSystemTask;
+
+void world_generate_galaxies(Universe *universe, int width, int height);
+void* world_generate_solarSystems(void* input);
+void world_generate_solarSystem(SolarSystem* solarSystem);
+void world_generate_planeOfPoints(GFC_List *points, int width, int heigh, int R);
+
+void world_generate_universe(Universe *out, int width, int height) {
+    int i, j, k = 0, nThreads, numOps;
+    Galaxy *gal;
+    SolarSystem *ss;
+    pthread_t* threads;
+    SolarSystemTask* task;
+    if (!out) return;
+
+    world_generate_galaxies(out, width, height);
+
+    nThreads = fmin(fmax(1, out->numGalaxies / 10), 10);
+    threads = gfc_allocate_array(sizeof(pthread_t), nThreads);
+    numOps = (out->numGalaxies / 10) + 1;
+
+    for (i = 0; i < nThreads; i++) {
+        task = gfc_allocate_array(sizeof(SolarSystemTask), 1);
+        task->width = width;
+        task->height = height;
+        task->galaxies = gfc_allocate_array(sizeof(Galaxy*), numOps);
+        for(j = 0; j < numOps && k < out->numGalaxies; j++) {
+            task->galaxies[j] = out->galaxies[k];
+            task->numGalaxies++;
+            k++;
+        }
+        pthread_create(&threads[i], NULL, world_generate_solarSystems, (void *) task);
+    }
+
+    for (i = 0; i < nThreads; i++) {
+        pthread_join(threads[i], NULL);
+    }
+
+    free(threads);
+
+    for (i = 0; i < out->numGalaxies; i++) {
+        gal = out->galaxies[i];
+        if (gal) {
+            for (j = 0; j < gal->numSolarSystems; j++) {
+                ss = gal->solarSystems[j];
+                if (ss) {
+                    world_generate_solarSystem(ss);
+                }
+            }
+        }
+    }
+}
+
+void world_generate_galaxies(Universe *universe, int width, int height) {
+    GFC_List *points;
+    int count, x;
+    Galaxy* gal;
+    GFC_Vector2D *point;
+    if (!universe) return;
+
+    points = gfc_list_new();
+    world_generate_planeOfPoints(points, width, height, 100);
+
+    count = gfc_list_count(points);
+    universe->galaxies = gfc_allocate_array(sizeof(Galaxy*), count);
+    for (x = 0; x < count; x++) {
+        point = gfc_list_get_nth(points, x);
+        gal = gfc_allocate_array(sizeof(Galaxy), 1);
+        gfc_vector2d_copy((*gal).pos, (*point));
+        universe->galaxies[x] = gal;
+        free(point);
+    }
+    universe->numGalaxies = count;
+
+    gfc_list_delete(points);
+}
+
+void* world_generate_solarSystems(void* task) {
+    Galaxy** galaxies;
+    GFC_List *points;
+    int width, height, numGalaxies, i, count, x;
+    SolarSystem* ss;
+    GFC_Vector2D *point;
+
+    galaxies = ((SolarSystemTask*) task)->galaxies;
+    width = ((SolarSystemTask*) task)->width;
+    height = ((SolarSystemTask*) task)->height;
+    numGalaxies = ((SolarSystemTask*) task)->numGalaxies;
+
+    for (i = 0; i < numGalaxies; i++) {
+        points = gfc_list_new();
+        world_generate_planeOfPoints(points, width, height, 200);
+
+        count = gfc_list_count(points);
+        galaxies[i]->solarSystems = gfc_allocate_array(sizeof(SolarSystem*), count);
+        for (x = 0; x < count; x++) {
+            point = gfc_list_get_nth(points, x);
+            ss = gfc_allocate_array(sizeof(SolarSystem), 1);
+            gfc_vector2d_copy((*ss).pos, (*point));
+            galaxies[i]->solarSystems[x] = ss;
+            free(point);
+        }
+        galaxies[i]->numSolarSystems = count;
+
+        gfc_list_delete(points);
+    }
+
+    free(galaxies);
+    free(task);
+    return NULL;
+}
+
+void world_generate_solarSystem(SolarSystem* ss) {
+    int i, j, numPlanets, numMoons, totalNumMoons = 0;
+    float totalRadiusDistance = 0, angle, dx, dy, totalMoonRadiusDistance = 0;
+    CelestialBody *body, *moon;
+    GFC_List* bodies;
+    if (!ss) return;
+
+    numPlanets = gfc_random_int(10) + 5;
+    bodies = gfc_list_new();
+
+    for (i = 0; i < numPlanets; i++) {
+        body = gfc_allocate_array(sizeof(CelestialBody), 1);
+        gfc_list_append(bodies, body);
+        body->type = PLANET;
+        body->mass = gfc_random() * 10;
+        body->radius = gfc_random() * 50;
+
+        totalRadiusDistance += (gfc_random() * 15) + 50;
+        angle = gfc_random() * GFC_2PI;
+        dx = cosf(angle) * totalRadiusDistance;
+        dy = sinf(angle) * totalRadiusDistance;
+        body->pos.x = dx;
+        body->pos.y = dy;
+
+        numMoons = gfc_random_int(5);
+        for (j = 0; j < numMoons; j++) {
+            moon = gfc_allocate_array(sizeof(CelestialBody), 1);
+            gfc_list_append(bodies, moon);
+            moon->type = MOON;
+            moon->mass = gfc_random() * 5;
+            moon->radius = gfc_random() * 15;
+
+            totalMoonRadiusDistance += (gfc_random() * 15) + 50;
+            angle = gfc_random() * GFC_2PI;
+            dx = cosf(angle) * totalMoonRadiusDistance;
+            dy = sinf(angle) * totalMoonRadiusDistance;
+            moon->pos.x = body->pos.x + dx;
+            moon->pos.y = body->pos.y + dy;
+        }
+        totalNumMoons += numMoons;
+    }
+
+    ss->celestialBodies = gfc_allocate_array(sizeof(CelestialBody*), numPlanets + totalNumMoons);
+    for (i = 0; i < gfc_list_count(bodies); i++) {
+        ss->celestialBodies[i] = (CelestialBody*) gfc_list_get_nth(bodies, i);
+    }
+    ss->numBodies = numPlanets + totalNumMoons;
+
+    gfc_list_delete(bodies);
+}
+
+void world_generate_planeOfPoints(GFC_List *points, int width, int height, int R) {
+    int i, x, y, p = 0;
+    float nx, ny;
+    GFC_Vector2D *point, *pointCmp;
+
+    float bluenoise[width][height];
+
+    for (x = 0; x < width; x++) {
+        for (y = 0; y < height; y++) {
+            nx = (float)x/width - 0.5;
+            ny = (float)y/height - 0.5;
+            bluenoise[x][y] = (gfc_perlin(gfc_vector2d(50 * nx, 50 * ny)) * 0.5) + 0.5;
+        }
+    }
+
+    int t = 0,a = 0;
+    for (x = 0; x < width; x++) {
+        for (y = 0; y < height; y++) {
+            if (bluenoise[x][y] > 0.6) {
+                t++;
+                point = gfc_allocate_array(sizeof(GFC_Vector2D), 1);
+                point->x = x;
+                point->y = y;
+
+                if (gfc_list_count(points) == 0) {
+                    gfc_list_append(points, point);
+                    continue;
+                }
+
+                p = 1;
+                for (i = 0; i < gfc_list_count(points); i++) {
+                    pointCmp = gfc_list_get_nth(points, i);
+                    if (gfc_vector2d_magnitude_between_squared(*point, *pointCmp) < R * R) {
+                        p = 0;
+                        break;
+                    }
+                }
+
+                if (p) {
+                    a++;
+                    gfc_list_append(points, point);
+
+                }
+            }
+        }
+    }
+}

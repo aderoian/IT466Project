@@ -28,6 +28,7 @@
 #include "player.h"
 #include "camera_entity.h"
 #include "quaternion.h"
+#include "world.h"
 
 extern int __DEBUG;
 
@@ -76,39 +77,47 @@ int main(int argc,char *argv[])
     srand(SDL_GetTicks());
     slog_sync();
     // bg = gf2d_sprite_load_image("images/bg_flat.png");
+    Sprite* square = gf2d_sprite_load_image("images/red_square.png");
     gf2d_mouse_load("actors/mouse.actor");
-
-    entity_init(2048);
-    physics_init(2048);
 
     gfc_matrix4_identity(skyboxMat);
     mesh = gf3d_mesh_load("models/sky/sky.obj");
     texture = gf3d_texture_load("models/sky/sky.png");
 
-    // main game loop
-    //gf3d_camera_look_at(gfc_vector3d(0,0,0),&cam);
-
-    int sep = 75;
-    int size = 10;
-    float start = -((size * sep) / 2);
-    for (i = 0; i < size*sep; i+=sep) {
-        for (j = 0; j < size*sep; j+=sep) {
-            for (k = 0; k < size*sep; k+=sep) {
-                if (start + i == 0 && start + j == 0 && start + k == 0) continue;
-                monster_spawn(gfc_vector3d(start + i, start + j, start + k), gfc_color8(gfc_random_int(256), gfc_random_int(256), gfc_random_int(256), 255));
-            }
-        }
-    }
+    entity_init(2048);
+    physics_init(2048);
+    world_init();
 
     player = init_player(playerPos, GFC_COLOR_WHITE);
     camera_entity_spawn(cam, player, 50, 10);
 
+
+    world_generate_universe(world_get_universe(), 1280, 800);
+    world_set_target_solarSystem(world_get_universe()->galaxies[0]->solarSystems[0]);
+
+    // int levelMode = 0;
+    // int levelIndex = 0;
+    // int subLevelIndex = 0;
+
+    // main game loop
     now = SDL_GetTicks() / 1000.f;
     while(!_done)
     {
         gfc_input_update();
         gf2d_mouse_update();
         gf2d_font_update();
+
+        // if (gfc_input_command_pressed("togglelayer")) {
+        //     levelMode = (levelMode + 1) % 3;
+        // } else if (gfc_input_command_pressed("togglenext")) {
+        //     if (levelMode == 1) {
+        //         levelIndex = (levelIndex + 1) % univ.numGalaxies;
+        //         slog ("viewing galaxy %d", levelIndex);
+        //     } else if (levelMode == 2) {
+        //         subLevelIndex = (subLevelIndex + 1) % univ.galaxies[levelIndex]->numSolarSystems;
+        //         slog ("viewing solar system %d", subLevelIndex);
+        //     }
+        // }
 
         // tick physics
         then = now;
@@ -117,8 +126,6 @@ int main(int argc,char *argv[])
         int start = SDL_GetTicks();
         physics_step(now - then);
         int end = SDL_GetTicks();
-        //slog("total tick: %d", end-start);
-
 
         // world updates
         entity_think_all();
@@ -132,7 +139,20 @@ int main(int argc,char *argv[])
                 entity_draw_all(light, GFC_COLOR_WHITE);
 
                 //2D draws
-                // gf2d_sprite_draw_image(bg,gfc_vector2d(0,0));
+                // if (levelMode == 0) {
+                //     for (i = 0; i < univ.numGalaxies; i++) {
+                //         gf2d_sprite_draw_image(square, gfc_vector2d(univ.galaxies[i]->pos.x, univ.galaxies[i]->pos.y));
+                //     }
+                // } else if (levelMode == 1) {
+                //     for (i = 0; i < univ.galaxies[levelIndex]->numSolarSystems; i++) {
+                //         gf2d_sprite_draw_image(square, gfc_vector2d(univ.galaxies[levelIndex]->solarSystems[i]->pos.x, univ.galaxies[levelIndex]->solarSystems[i]->pos.y));
+                //     }
+                // } else {
+                //     for (i = 0; i < univ.galaxies[levelIndex]->solarSystems[subLevelIndex]->numBodies; i++) {
+                //         gf2d_sprite_draw_image(square, gfc_vector2d(univ.galaxies[levelIndex]->solarSystems[subLevelIndex]->celestialBodies[i]->pos.x + 620, univ.galaxies[levelIndex]->solarSystems[subLevelIndex]->celestialBodies[i]->pos.y + 360));
+                //     }
+                // }
+
                 gf2d_font_draw_line_tag("ALT+F4 to exit",FT_H1,GFC_COLOR_WHITE, gfc_vector2d(10,10));
                 gf2d_mouse_draw();
         gf3d_vgraphics_render_end();
