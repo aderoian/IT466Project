@@ -55,3 +55,4 @@ Add the .lib files for each of the SDL2 libraries to the additional libraries se
 
 Add existing items: all the .c (in the src folders) and .h (in the include folders) files from each of the submodules gf3d,gfc,simple_logger, simple_json
 
+https://opengameart.org/content/galaxy-background-image

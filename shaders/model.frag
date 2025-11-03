@@ -16,10 +16,16 @@ layout(location = 0) out vec4 outColor;
 
 void main()
 {
-    vec3 lightDir = normalize(lightPos.xyz - worldPosition.xyz);
-    vec4 texColor = texture(texSampler, fragTexCoord);
+    vec3 N = normalize(inNormal);          // fragment normal
+    vec3 L = normalize(worldPosition.xyz - lightPos.xyz); // from origin to fragment
 
-    texColor.xyz = texColor.xyz * max(0.0,dot(-lightDir,inNormal));
+    float diffuse = max(dot(N, -L), 0.0);   // Lambertian diffuse
+    float ambient = 0.1;                   // minimum brightness
+
+    vec3 sunColor = vec3(1.0, 0.98, 0.9); // optional tint
+
+    vec4 texColor = texture(texSampler, fragTexCoord);
+    texColor.rgb *= sunColor * (ambient + diffuse * (1.0 - ambient));
 
     outColor = texColor * colorMod;
 }

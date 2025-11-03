@@ -1,3 +1,5 @@
+#include "simple_logger.h"
+
 #include "gfc_color.h"
 #include "gf3d_texture.h"
 #include "gf3d_mesh.h"
@@ -18,6 +20,8 @@ Entity* spawn_celestial_entity(CelestialBody* body) {
     self->position = gfc_vector3d(body->pos.x * DISTANCE_SCALE_FACTOR, body->pos.y * DISTANCE_SCALE_FACTOR, 0);
     self->rotation = quaternion_create(0, 0, 0, 1);
     self->scale = gfc_vector3d(body->radius * 2 * BODY_SCALE_FACTOR, body->radius * 2 * BODY_SCALE_FACTOR, body->radius * 2 * BODY_SCALE_FACTOR);
+
+    slog("spawning circle at: %f %f %f", self->position.x, self->position.y, self->position.z);
 
     return self;
 }

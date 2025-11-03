@@ -29,6 +29,8 @@
 #include "camera_entity.h"
 #include "quaternion.h"
 #include "world.h"
+#include "ui.h"
+#include "world_map.h"
 
 extern int __DEBUG;
 
@@ -56,7 +58,7 @@ int main(int argc,char *argv[])
     GFC_Vector3D playerPos = {0,0,0};
     GFC_Matrix4 skyboxMat = {0};
     GFC_Vector3D cam = {0,-50,0};
-    GFC_Vector3D light = {100, 25, 30};
+    GFC_Vector3D light = {0, 0, 0};
 
     //initializtion    
     parse_arguments(argc,argv);
@@ -76,14 +78,15 @@ int main(int argc,char *argv[])
     //game init
     srand(SDL_GetTicks());
     slog_sync();
-    // bg = gf2d_sprite_load_image("images/bg_flat.png");
-    Sprite* square = gf2d_sprite_load_image("images/red_square.png");
     gf2d_mouse_load("actors/mouse.actor");
+
+    gf2d_mouse_hide();
 
     gfc_matrix4_identity(skyboxMat);
     mesh = gf3d_mesh_load("models/sky/sky.obj");
     texture = gf3d_texture_load("models/sky/sky.png");
 
+    ui_init();
     entity_init(2048);
     physics_init(2048);
     world_init();
@@ -91,13 +94,10 @@ int main(int argc,char *argv[])
     player = init_player(playerPos, GFC_COLOR_WHITE);
     camera_entity_spawn(cam, player, 50, 10);
 
-
-    world_generate_universe(world_get_universe(), 1280, 800);
+    world_generate_universe(world_get_universe(), 1080, 580);
     world_set_target_solarSystem(world_get_universe()->galaxies[0]->solarSystems[0]);
 
-    // int levelMode = 0;
-    // int levelIndex = 0;
-    // int subLevelIndex = 0;
+    world_map_load();
 
     // main game loop
     now = SDL_GetTicks() / 1000.f;
@@ -107,29 +107,16 @@ int main(int argc,char *argv[])
         gf2d_mouse_update();
         gf2d_font_update();
 
-        // if (gfc_input_command_pressed("togglelayer")) {
-        //     levelMode = (levelMode + 1) % 3;
-        // } else if (gfc_input_command_pressed("togglenext")) {
-        //     if (levelMode == 1) {
-        //         levelIndex = (levelIndex + 1) % univ.numGalaxies;
-        //         slog ("viewing galaxy %d", levelIndex);
-        //     } else if (levelMode == 2) {
-        //         subLevelIndex = (subLevelIndex + 1) % univ.galaxies[levelIndex]->numSolarSystems;
-        //         slog ("viewing solar system %d", subLevelIndex);
-        //     }
-        // }
-
         // tick physics
         then = now;
         now = SDL_GetTicks() / 1000.f;
-
-        int start = SDL_GetTicks();
         physics_step(now - then);
-        int end = SDL_GetTicks();
 
         // world updates
         entity_think_all();
         entity_update_all();
+
+        ui_update(now - then);
 
         //camera updaes
         gf3d_camera_update_view_q();
@@ -138,22 +125,9 @@ int main(int argc,char *argv[])
                 gf3d_mesh_skybox_draw(mesh,skyboxMat,GFC_COLOR_WHITE,texture);
                 entity_draw_all(light, GFC_COLOR_WHITE);
 
-                //2D draws
-                // if (levelMode == 0) {
-                //     for (i = 0; i < univ.numGalaxies; i++) {
-                //         gf2d_sprite_draw_image(square, gfc_vector2d(univ.galaxies[i]->pos.x, univ.galaxies[i]->pos.y));
-                //     }
-                // } else if (levelMode == 1) {
-                //     for (i = 0; i < univ.galaxies[levelIndex]->numSolarSystems; i++) {
-                //         gf2d_sprite_draw_image(square, gfc_vector2d(univ.galaxies[levelIndex]->solarSystems[i]->pos.x, univ.galaxies[levelIndex]->solarSystems[i]->pos.y));
-                //     }
-                // } else {
-                //     for (i = 0; i < univ.galaxies[levelIndex]->solarSystems[subLevelIndex]->numBodies; i++) {
-                //         gf2d_sprite_draw_image(square, gfc_vector2d(univ.galaxies[levelIndex]->solarSystems[subLevelIndex]->celestialBodies[i]->pos.x + 620, univ.galaxies[levelIndex]->solarSystems[subLevelIndex]->celestialBodies[i]->pos.y + 360));
-                //     }
-                // }
 
                 gf2d_font_draw_line_tag("ALT+F4 to exit",FT_H1,GFC_COLOR_WHITE, gfc_vector2d(10,10));
+                ui_draw();
                 gf2d_mouse_draw();
         gf3d_vgraphics_render_end();
         if (gfc_input_command_down("exit"))_done = 1; // exit condition
