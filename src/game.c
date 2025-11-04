@@ -80,6 +80,7 @@ int main(int argc,char *argv[])
     slog_sync();
     gf2d_mouse_load("actors/mouse.actor");
 
+    SDL_SetRelativeMouseMode(SDL_TRUE);
     gf2d_mouse_hide();
 
     gfc_matrix4_identity(skyboxMat);

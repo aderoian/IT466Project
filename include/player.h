@@ -7,7 +7,7 @@
 #include "entity.h"
 
 typedef struct {
-
+    GFC_Vector2D rotVelocity;
 } PlayerData;
 
 /**
