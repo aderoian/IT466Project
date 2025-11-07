@@ -209,10 +209,13 @@ void world_generate_solarSystem(SolarSystem* ss) {
         body = gfc_allocate_array(sizeof(CelestialBody), 1);
         gfc_list_append(bodies, body);
         body->type = PLANET;
-        body->mass = gfc_random() * 10;
-        body->radius = gfc_random() * 50;
+        //body->mass = gfc_random() * 10;
+        //body->radius = gfc_random() * 10 + 5;
+        body->mass = 10.f;
+        body->radius = 10;
 
-        totalRadiusDistance += (gfc_random() * 15) + 50;
+        //totalRadiusDistance += (gfc_random() * 15) + 20;
+        totalRadiusDistance += 30;
         angle = gfc_random() * GFC_2PI;
         dx = cosf(angle) * totalRadiusDistance;
         dy = sinf(angle) * totalRadiusDistance;
@@ -224,10 +227,12 @@ void world_generate_solarSystem(SolarSystem* ss) {
             moon = gfc_allocate_array(sizeof(CelestialBody), 1);
             gfc_list_append(bodies, moon);
             moon->type = MOON;
-            moon->mass = gfc_random() * 5;
-            moon->radius = gfc_random() * 15;
+            moon->mass = gfc_random() * 4 + 1;
+            //moon->radius = gfc_random() * 15;
+            moon->radius = 2.5f;
 
-            totalMoonRadiusDistance += (gfc_random() * 15) + 50;
+            //totalMoonRadiusDistance += (gfc_random() * 4) + 1;
+            totalMoonRadiusDistance += 7.5f;
             angle = gfc_random() * GFC_2PI;
             dx = cosf(angle) * totalMoonRadiusDistance;
             dy = sinf(angle) * totalMoonRadiusDistance;

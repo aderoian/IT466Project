@@ -9,7 +9,19 @@
 #define POSITIONAL_CORRECTION_PERCENT 0.8f
 #define POSITIONAL_CORRECTION_SLOP 0.01f
 
-typedef GFC_Vector3D CollisionShape[2];
+#define FLAG_AABB 0x01
+#define FLAG_SPHERE 0x02
+
+typedef GFC_Vector3D AABBShape[2];
+typedef GFC_Vector4D SphereShape;
+
+typedef struct {
+    Uint8 type;
+    union {
+        AABBShape aabb;
+        SphereShape sphere;
+    } Shape;
+} CollisionShape;
 
 struct Entity_s;
 struct CollisionInfo_s;

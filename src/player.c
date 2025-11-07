@@ -7,16 +7,22 @@
 
 #define PLAYER_SPEED 1000.0f
 #define PLAYER_SENSITIVITY 0.001f
+#define PLAYER_ROLL_SENSITIVITY 0.75f
 #define PLAYER_ROTATION_CLAMP 50
+#define PLAYER_ROLL_CLAMP 5
 #define ROTATION_DT 0.035f
 
 #define clamp(x, low, high) ((x) < (low) ? (low) : ((x) > (high) ? (high) : (x)))
 
+void on_collide(const CollisionInfo* info) {
+    //slog("collided with %f %f %f at %f %f %f", info->b->position.x, info->b->position.y, info->b->position.z, info->contactPoint.x, info->contactPoint.y, info->contactPoint.z);
+}
+
 void player_update(Entity* ent) {
     Quaternion* rot, delta;
     int mdx, mdy;
-    float half, dx = 0, dy = 0, dz = 0;
-    GFC_Vector3D forward, velocity;
+    float half, rollDelta = 0;
+    GFC_Vector3D forward, velocity, rotation;
     GFC_Vector2D mouseMove, mousePos;
     PlayerData* data;
     if (!ent) return;
@@ -24,31 +30,28 @@ void player_update(Entity* ent) {
     data = (PlayerData*) ent->data;
 
     SDL_GetRelativeMouseState(&mdx, &mdy);
-    data->rotVelocity.x += clamp(mdx, -PLAYER_ROTATION_CLAMP, PLAYER_ROTATION_CLAMP) * PLAYER_SENSITIVITY;
-    data->rotVelocity.y += clamp(mdy, -PLAYER_ROTATION_CLAMP, PLAYER_ROTATION_CLAMP) * PLAYER_SENSITIVITY;
+    data->rotVelocity.z += clamp(mdx, -PLAYER_ROTATION_CLAMP, PLAYER_ROTATION_CLAMP) * PLAYER_SENSITIVITY;
+    data->rotVelocity.x += clamp(mdy, -PLAYER_ROTATION_CLAMP, PLAYER_ROTATION_CLAMP) * PLAYER_SENSITIVITY;
 
-    dz = data->rotVelocity.x * ROTATION_DT;
-    dx = data->rotVelocity.y * ROTATION_DT;
-    data->rotVelocity.x -= dz;
-    data->rotVelocity.y -= dx;
+    if (gfc_input_command_down("rollleft"))
+        rollDelta -= PLAYER_ROLL_SENSITIVITY;
+    if (gfc_input_command_down("rollright"))
+        rollDelta += PLAYER_ROLL_SENSITIVITY;
+    data->rotVelocity.y =+ clamp(rollDelta, -PLAYER_ROLL_CLAMP, PLAYER_ROLL_CLAMP);
 
     rot = &ent->rotation;
-    if (gfc_input_command_down("rollleft")) {
-        dy -= 0.03f;
-    }
-    if (gfc_input_command_down("rollright")) {
-        dy += 0.03f;
-    }
+    gfc_vector3d_scale(rotation, data->rotVelocity, ROTATION_DT);
+    gfc_vector3d_sub(data->rotVelocity, data->rotVelocity, rotation);
 
-    half = -dx * 0.5f;
+    half = -rotation.x * 0.5f;
     delta = quaternion_create(sinf(half), 0, 0, cosf(half));
     quaternion_multiply_q(rot, *rot, delta);
 
-    half = dy * 0.5f;
+    half = rotation.y * 0.5f;
     delta = quaternion_create(0, sinf(half), 0, cosf(half));
     quaternion_multiply_q(rot, *rot, delta);
 
-    half = -dz * 0.5f;
+    half = -rotation.z * 0.5f;
     delta = quaternion_create(0, 0, sinf(half), cosf(half));
     quaternion_multiply_q(rot, *rot, delta);
     quaternion_normalize(rot);
@@ -93,9 +96,13 @@ Entity* init_player(GFC_Vector3D position, GFC_Color color) {
     self->update = player_update;
 
     self->physicsBody = physics_body_create();
+    self->physicsBody->position = position;
     self->physicsBody->mass = 100;
     self->physicsBody->invMass = 1.f / 100.f;
     self->physicsBody->owner = self;
+    self->physicsBody->shape.type = FLAG_SPHERE;
+    self->physicsBody->shape.Shape.sphere.w = 7;
+    self->physicsBody->collisionCallback = on_collide;
 
     return self;
 }

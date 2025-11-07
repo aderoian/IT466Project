@@ -46,6 +46,28 @@ void exitGame()
     _done = 1;
 }
 
+Entity* spawn_circle(GFC_Vector3D pos, float scale) {
+    Entity* self = entity_new();
+    self->mesh = gf3d_mesh_load("models/primitives/sphere.obj");
+    self->texture = gf3d_texture_load("models/primitives/flatwhite.png");
+    self->color = GFC_COLOR_WHITE;
+    self->position = pos;
+    self->rotation = quaternion_create(0, 0, 0, 1);
+    gfc_vector3d_scale(self->scale, self->scale, scale);
+
+    slog("spawning circle at: %f %f %f r%f", self->position.x, self->position.y, self->position.z);
+
+    self->physicsBody = physics_body_create();
+    self->physicsBody->position = self->position;
+    self->physicsBody->mass = 100.f;
+    self->physicsBody->invMass = 0; // Planets become "static"
+    self->physicsBody->owner = self;
+    self->physicsBody->shape.type = FLAG_SPHERE;
+    self->physicsBody->shape.Shape.sphere.w = scale;
+
+    return self;
+}
+
 
 int main(int argc,char *argv[])
 {
@@ -55,7 +77,7 @@ int main(int argc,char *argv[])
     Mesh* mesh;
     Texture* texture;
     Entity* player;
-    GFC_Vector3D playerPos = {0,0,0};
+    GFC_Vector3D playerPos = {0,0,50};
     GFC_Matrix4 skyboxMat = {0};
     GFC_Vector3D cam = {0,-50,0};
     GFC_Vector3D light = {0, 0, 0};
@@ -100,6 +122,8 @@ int main(int argc,char *argv[])
 
     world_map_load();
 
+    //spawn_circle(gfc_vector3d(0, 0, 0), 25.f);
+
     // main game loop
     now = SDL_GetTicks() / 1000.f;
     while(!_done)
@@ -125,7 +149,6 @@ int main(int argc,char *argv[])
                 //3D draws
                 gf3d_mesh_skybox_draw(mesh,skyboxMat,GFC_COLOR_WHITE,texture);
                 entity_draw_all(light, GFC_COLOR_WHITE);
-
 
                 gf2d_font_draw_line_tag("ALT+F4 to exit",FT_H1,GFC_COLOR_WHITE, gfc_vector2d(10,10));
                 ui_draw();
