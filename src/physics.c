@@ -115,6 +115,7 @@ void physics_sync() {
     for (i = 0; i < body_manager.count; i++) {
         if (body_manager.bodies[i]._inuse <= 0)continue;
 
+        if (!body_manager.bodies[i].owner) continue;
         body_manager.bodies[i].owner->position = body_manager.bodies[i].position;
         body_manager.bodies[i].owner->velocity = body_manager.bodies[i].velocity;
     }
@@ -129,9 +130,11 @@ void physics_detect_collision() {
     info = gfc_allocate_array(sizeof(CollisionInfo), 1);
     for (i = 0; i < body_manager.count; i++) {
         if (body_manager.bodies[i]._inuse <= 0)continue;
+        if (body_manager.bodies[i].flags & FLAG_NOT_COLLIDABLE) continue;
 
         for (j = i + 1; j < body_manager.count; j++) {
             if (body_manager.bodies[j]._inuse <= 0)continue;
+            if (body_manager.bodies[j].flags & FLAG_NOT_COLLIDABLE) continue;
             a = &body_manager.bodies[i];
             b = &body_manager.bodies[j];
 
@@ -296,7 +299,6 @@ void physics_resolve_collisions() {
         for (i = 0; i < gfc_list_get_count(collisionBuffer); i++) {
             info = (CollisionInfo*) gfc_list_get_nth(collisionBuffer, i);
             if (!info) continue;
-            if (!(info->a->flags & FLAG_NOT_COLLIDABLE || info->b->flags & FLAG_NOT_COLLIDABLE))
                 physics_resolve_collision(info);
         }
     }

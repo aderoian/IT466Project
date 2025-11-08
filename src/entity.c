@@ -60,8 +60,9 @@ void entity_free(Entity* ent) {
     if (!ent) return;
 
     if (ent->free) ent->free(ent);
-    gf3d_mesh_free(ent->mesh);
-    gf3d_texture_free(ent->texture);
+    if (ent->mesh) gf3d_mesh_free(ent->mesh);
+    if (ent->texture) gf3d_texture_free(ent->texture);
+    if (ent->physicsBody) physics_body_free(ent->physicsBody);
     memset(ent,0,sizeof(Entity));
 }
 

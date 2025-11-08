@@ -110,8 +110,8 @@ int main(int argc,char *argv[])
     texture = gf3d_texture_load("models/sky/sky.png");
 
     ui_init();
-    entity_init(2048);
     physics_init(2048);
+    entity_init(2048);
     world_init();
 
     player = init_player(playerPos, GFC_COLOR_WHITE);
@@ -121,8 +121,6 @@ int main(int argc,char *argv[])
     world_set_target_solarSystem(world_get_universe()->galaxies[0]->solarSystems[0]);
 
     world_map_load();
-
-    //spawn_circle(gfc_vector3d(0, 0, 0), 25.f);
 
     // main game loop
     now = SDL_GetTicks() / 1000.f;
