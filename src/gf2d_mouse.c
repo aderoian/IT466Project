@@ -88,7 +88,7 @@ int gf2d_mouse_moved()
 int gf2d_mouse_button_pressed(int button)
 {
     int mask;
-    if (_mouse.hidden)return 0;
+    //if (_mouse.hidden)return 0;
     mask = 1 << button;
     if ((_mouse.mouse[0].buttons & mask) &&
         !(_mouse.mouse[1].buttons & mask))
@@ -101,7 +101,7 @@ int gf2d_mouse_button_pressed(int button)
 int gf2d_mouse_button_held(int button)
 {
     int mask;
-    if (_mouse.hidden)return 0;
+    //if (_mouse.hidden)return 0;
     mask = 1 << button;
     if ((_mouse.mouse[0].buttons & mask) &&
         (_mouse.mouse[1].buttons & mask))
@@ -114,7 +114,7 @@ int gf2d_mouse_button_held(int button)
 int gf2d_mouse_button_released(int button)
 {
     int mask;
-    if (_mouse.hidden)return 0;
+    //if (_mouse.hidden)return 0;
     mask = 1 << button;
     if (!(_mouse.mouse[0].buttons & mask) &&
         (_mouse.mouse[1].buttons & mask))

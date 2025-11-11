@@ -111,6 +111,10 @@ int ui_blocking() {
     return ui_manager.blocking;
 }
 
+void ui_set_overlay(UIElement* el) {
+    ui_manager.overlay = el;
+}
+
 int register_command_callback(GFC_TextWord command, UIElement* (*commandCallback) ()) {
     int i;
     UIOpenCommandCallback* cb;

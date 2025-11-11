@@ -20,15 +20,20 @@ typedef struct Weapon_s {
     GFC_TextLine name;
     AmmoType ammoType;
     AmmoResource* ammoResource;
-    int magSize;
     int depletion;
     int reloadDelay;
     int fireRate;
+    int damage;
+    int lifetime;
+    int bulletSpeed;
     void (*fire) (struct Weapon_s* weapon, Entity* shooter);
 } Weapon;
 
 extern Weapon g_weapons[];
 
 void fire_lazer_cannon(Weapon* weapon, Entity* shooter);
+void fire_dual_lazer_cannon(Weapon* weapon, Entity* shooter);
+void fire_quad_lazer_cannon(Weapon* weapon, Entity* shooter);
+void fire_plasma_beam(Weapon* weapon, Entity* shooter);
 
 #endif // __WEAPON_H__

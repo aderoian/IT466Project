@@ -39,6 +39,8 @@ void ui_draw();
 
 int ui_blocking();
 
+void ui_set_overlay(UIElement* el);
+
 int register_command_callback(GFC_TextWord command, UIElement* (*commandCallback) ());
 
 UIElement* ui_element_create_simple(const char *filename, GFC_Vector2D pos);

@@ -8,21 +8,71 @@
 
 #include "simple_json.h"
 
-#include "world.h"
+#include "player.h"
 #include "celestial_entity.h"
+#include "world.h"
+
+#define NUM_ASTEROIDS 400
+#define MAX_ASTEROID_DISTANCE 75000
 
 static Universe universe = {0};
 static World world = {0};
 
 void world_init() {
     world.solarSystem = NULL;
-    world.additionalBodies = gfc_list_new();
+    world.asteroids = gfc_list_new_size(NUM_ASTEROIDS);
+
+    for (int i = 0 ; i < NUM_ASTEROIDS; i++) {
+        gfc_list_append(world.asteroids, NULL);
+    }
 }
 
 void world_despawn_solarSystem();
+Entity* world_create_asteroid(GFC_Vector3D center, SolarSystem* ss);
 
 void world_close() {
+    int i;
+    Entity* body;
     world_despawn_solarSystem();
+
+    for (i = 0; i < gfc_list_count(world.asteroids); i++) {
+        body = (Entity*) gfc_list_get_nth(world.asteroids, i);
+        if (body) entity_free(body);
+    }
+    gfc_list_delete(world.asteroids);
+}
+
+void world_update() {
+    int i;
+    float mag;
+    Entity* body;
+    if (!player || !world.solarSystem) return;
+
+    // Remove stale asteroids (far from player)
+    for (i = 0; i < NUM_ASTEROIDS && world.numAsteroids > 0; i++) {
+        body = (Entity*) gfc_list_get_nth(world.asteroids, i);
+        if (!body) continue;
+
+        if (gfc_vector3d_magnitude_between_squared(body->position, player->position) < MAX_ASTEROID_DISTANCE * MAX_ASTEROID_DISTANCE) {
+            if (body->_inuse == 0) gfc_list_set_nth(world.asteroids, i, NULL);
+            continue;
+        }
+
+        if (body) entity_free(body);
+        gfc_list_set_nth(world.asteroids, i, NULL);
+        world.numAsteroids--;
+    }
+
+    // Create new asteroids to fill to cap
+    for (i = 0; i < NUM_ASTEROIDS && world.numAsteroids < NUM_ASTEROIDS; i++) {
+        body = (Entity*) gfc_list_get_nth(world.asteroids, i);
+        if (body) continue;
+
+        // Create asteroid
+        body = world_create_asteroid(player->position, world.solarSystem);
+        gfc_list_set_nth(world.asteroids, i, body);
+        world.numAsteroids++;
+    }
 }
 
 void world_load_universe(Universe* universe) {
@@ -195,22 +245,68 @@ void* world_generate_solarSystems(void* task) {
     return NULL;
 }
 
+void world_get_planet_texture(char* out, int i) {
+    switch (i) {
+        case 0:
+            strcpy(out, "images/celestial/earth.jpg");
+            break;
+        case 1:
+            strcpy(out, "images/celestial/ceres.jpg");
+            break;
+        case 2:
+            strcpy(out, "images/celestial/makemake.jpg");
+            break;
+        case 3:
+            strcpy(out, "images/celestial/eris.jpg");
+            break;
+        case 4:
+            strcpy(out, "images/celestial/haumea.jpg");
+            break;
+        case 5:
+            strcpy(out, "images/celestial/jupiter.jpg");
+            break;
+        case 6:
+            strcpy(out, "images/celestial/mars.jpg");
+            break;
+        case 7:
+            strcpy(out, "images/celestial/mercury.jpg");
+            break;
+        case 8:
+            strcpy(out, "images/celestial/neptune.jpg");
+            break;
+        case 9:
+            strcpy(out, "images/celestial/saturn.jpg");
+            break;
+        case 10:
+            strcpy(out, "images/celestial/uranus.jpg");
+            break;
+        case 11:
+            strcpy(out, "images/celestial/venus_atmosphere.jpg");
+            break;
+        case 12:
+            strcpy(out, "images/celestial/venus_surface.jpg");
+            break;
+    }
+}
+
 void world_generate_solarSystem(SolarSystem* ss) {
     int i, j, numPlanets, numMoons, totalNumMoons = 0;
-    float totalRadiusDistance = 0, angle, dx, dy, totalMoonRadiusDistance = 0;
+    float totalRadiusDistance = 45, angle, dx, dy, totalMoonRadiusDistance = 0;
     CelestialBody *body, *moon;
     GFC_List* bodies;
     if (!ss) return;
 
-    numPlanets = gfc_random_int(10) + 5;
+    numPlanets = gfc_random_int(10) + 5 + 1;
     bodies = gfc_list_new();
 
     for (i = 0; i < numPlanets; i++) {
         body = gfc_allocate_array(sizeof(CelestialBody), 1);
         gfc_list_append(bodies, body);
         body->type = PLANET;
+        strcpy(body->name, "celestial");
+        world_get_planet_texture(body->texture, gfc_random_int(13));
         //body->mass = gfc_random() * 10;
-        //body->radius = gfc_random() * 10 + 5;
+        body->radius = gfc_random() * 10 + 5;
         body->mass = 10.f;
         body->radius = 10;
 
@@ -222,17 +318,19 @@ void world_generate_solarSystem(SolarSystem* ss) {
         body->pos.x = dx;
         body->pos.y = dy;
 
-        numMoons = gfc_random_int(5);
+        numMoons = gfc_random_int(2);
         for (j = 0; j < numMoons; j++) {
             moon = gfc_allocate_array(sizeof(CelestialBody), 1);
             gfc_list_append(bodies, moon);
             moon->type = MOON;
+            strcpy(moon->name, "celestial");
+            strcpy(moon->texture, "images/celestial/moon.jpg");
             moon->mass = gfc_random() * 4 + 1;
             //moon->radius = gfc_random() * 15;
             moon->radius = 2.5f;
 
             //totalMoonRadiusDistance += (gfc_random() * 4) + 1;
-            totalMoonRadiusDistance += 7.5f;
+            totalMoonRadiusDistance += 15.f;
             angle = gfc_random() * GFC_2PI;
             dx = cosf(angle) * totalMoonRadiusDistance;
             dy = sinf(angle) * totalMoonRadiusDistance;
@@ -297,4 +395,25 @@ void world_generate_planeOfPoints(GFC_List *points, int width, int height, int R
             }
         }
     }
+}
+
+Entity* world_create_asteroid(GFC_Vector3D center, SolarSystem* ss) {
+    int distance;
+    float theta, z, r, size;
+    GFC_Vector3D pos;
+    if (!ss) return NULL;
+
+    distance = gfc_random_int(MAX_ASTEROID_DISTANCE - 500) + 500;
+    theta = gfc_random() * GFC_2PI;
+    z = gfc_random() * 2.0f - 1.0f;
+    r = sqrtf(1.0f - z * z);
+
+    pos = gfc_vector3d(r * cosf(theta), z, r * sinf(theta));
+
+    gfc_vector3d_scale(pos, pos, distance);
+    gfc_vector3d_add(pos, pos, center);
+
+        // TODO: Check collision with celestial bodies
+    size = 2 * ((gfc_random() * 10.f) + 10.f);
+    return spawn_asteroid(pos, size);
 }

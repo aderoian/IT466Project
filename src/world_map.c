@@ -59,7 +59,7 @@ void world_map_unload_view_element(UIElement* el) {
         world_map_unload_view_element(el->child);
     }
 
-    free(el->data);
+    if (el->data) free(el->data);
     gf2d_sprite_free(el->sprite);
     free(el);
 }
@@ -72,10 +72,11 @@ void world_map_load_solarsystems(Galaxy* galaxy) {
     if (!galaxy || galaxy->numSolarSystems <= 0 ||!galaxy->solarSystems) return;
     if (map_manager.galaxyView) {
         world_map_unload_view_element(map_manager.galaxyView);
+        map_manager.galaxyView = NULL;
     }
 
     gfc_vector2d_add(position, galaxy->solarSystems[0]->pos, gfc_vector2d(100, 61));
-    map_manager.galaxyView = ui_element_create_simple("images/ui/map/galaxy_icon.png", position);
+    map_manager.galaxyView = ui_element_create_simple("images/ui/map/solar_system_icon.png", position);
     data = gfc_allocate_array(sizeof(ViewIconData), 1);
     data->index = 0;
     map_manager.galaxyView->data = data;
@@ -83,7 +84,7 @@ void world_map_load_solarsystems(Galaxy* galaxy) {
     icon = map_manager.galaxyView;
     for (i = 1; i < galaxy->numSolarSystems; i++) {
         gfc_vector2d_add(position, galaxy->solarSystems[i]->pos, gfc_vector2d(100, 61));
-        icon->child = ui_element_create_simple("images/ui/map/galaxy_icon.png", position);
+        icon->child = ui_element_create_simple("images/ui/map/solar_system_icon.png", position);
         icon = icon->child;
         data = gfc_allocate_array(sizeof(ViewIconData), 1);
         data->index = i;
@@ -99,10 +100,11 @@ void world_map_load_solarsystem(SolarSystem* solarSystem) {
     if (!solarSystem || solarSystem->numBodies <= 0 ||!solarSystem->celestialBodies) return;
     if (map_manager.solarSystemView) {
         world_map_unload_view_element(map_manager.solarSystemView);
+        map_manager.solarSystemView = NULL;
     }
 
     gfc_vector2d_add(position, solarSystem->celestialBodies[0]->pos, gfc_vector2d(640, 360));
-    map_manager.solarSystemView = ui_element_create_simple("images/ui/map/galaxy_icon.png", position);
+    map_manager.solarSystemView = ui_element_create_simple("images/ui/map/planet_icon.png", position);
     data = gfc_allocate_array(sizeof(ViewIconData), 1);
     data->index = 0;
     map_manager.solarSystemView->data = data;
@@ -110,7 +112,7 @@ void world_map_load_solarsystem(SolarSystem* solarSystem) {
     icon = map_manager.solarSystemView;
     for (i = 1; i < solarSystem->numBodies; i++) {
         gfc_vector2d_add(position, solarSystem->celestialBodies[i]->pos, gfc_vector2d(640, 360));
-        icon->child = ui_element_create_simple("images/ui/map/galaxy_icon.png", position);
+        icon->child = ui_element_create_simple("images/ui/map/planet_icon.png", position);
         icon = icon->child;
         data = gfc_allocate_array(sizeof(ViewIconData), 1);
         data->index = i;

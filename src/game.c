@@ -30,6 +30,7 @@
 #include "quaternion.h"
 #include "world.h"
 #include "ui.h"
+#include "overlay.h"
 #include "world_map.h"
 
 extern int __DEBUG;
@@ -121,6 +122,7 @@ int main(int argc,char *argv[])
     world_set_target_solarSystem(world_get_universe()->galaxies[0]->solarSystems[0]);
 
     world_map_load();
+    overlay_init();
 
     // main game loop
     now = SDL_GetTicks() / 1000.f;
@@ -138,6 +140,7 @@ int main(int argc,char *argv[])
         // world updates
         entity_think_all();
         entity_update_all();
+        world_update();
 
         ui_update(now - then);
 

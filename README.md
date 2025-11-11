@@ -55,4 +55,8 @@ Add the .lib files for each of the SDL2 libraries to the additional libraries se
 
 Add existing items: all the .c (in the src folders) and .h (in the include folders) files from each of the submodules gf3d,gfc,simple_logger, simple_json
 
+Image Credits:
 https://opengameart.org/content/galaxy-background-image
+https://www.flaticon.com/free-icon/solar-system_947683
+https://freesvg.org/1474979683
+https://www.solarsystemscope.com/textures/

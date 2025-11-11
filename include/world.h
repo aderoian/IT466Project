@@ -10,7 +10,8 @@ struct SolarSystem_s;
 
 typedef struct World_s {
     struct SolarSystem_s* solarSystem;
-    GFC_List* additionalBodies;
+    GFC_List* asteroids;
+    int numAsteroids;
 } World;
 
 typedef enum {
@@ -24,6 +25,7 @@ typedef struct CelestialBody_s {
     CelestialBodyType type;
     GFC_TextLine name;
     Entity* entity;
+    char texture[50];
     GFC_Vector2D pos;
     float mass;
     float radius;
@@ -51,6 +53,7 @@ typedef struct Universe_s {
 
 void world_init();
 void world_close();
+void world_update();
 
 void world_load_universe(Universe* universe);
 void world_save_universe(Universe* universe);
