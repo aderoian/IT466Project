@@ -92,6 +92,7 @@ int main(int argc,char *argv[])
     gfc_input_init("config/input.cfg");
     gfc_config_def_init();
     gfc_action_init(1024);
+    gfc_audio_init(1024, 1, 1);
 
     //gf3d init
     gf3d_vgraphics_init("config/setup.cfg");
@@ -123,6 +124,8 @@ int main(int argc,char *argv[])
 
     world_map_load();
     overlay_init();
+
+    world_map_set_player_location(0, 0);
 
     // main game loop
     now = SDL_GetTicks() / 1000.f;

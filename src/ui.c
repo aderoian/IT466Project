@@ -73,6 +73,8 @@ void ui_update(float deltaTime) {
     if (ui_manager.menu && gf2d_mouse_in_rect(ui_manager.menu->localBounding)) {
         if (gf2d_mouse_button_pressed(0)) {
             if (ui_manager.menu->onClick) ui_manager.menu->onClick();
+        } else if (gf2d_mouse_button_pressed(2)) {
+            if (ui_manager.menu->onRightClick) ui_manager.menu->onRightClick();
         } else if (ui_manager.menu->onHover) ui_manager.menu->onHover();
     }
 

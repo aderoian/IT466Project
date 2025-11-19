@@ -17,6 +17,7 @@ typedef struct UIElement_s {
     void (*onClose) (void);
     void (*onHover) (void);
     void (*onClick) (void);
+    void (*onRightClick ) (void);
     void (*draw) (void);
 
     void *data;

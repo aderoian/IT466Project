@@ -60,8 +60,6 @@ void player_think(Entity* ent) {
         usableEnergy += ship->storedEnergy[i];
     }
 
-    slog("usable energy %f", usableEnergy);
-
     dir = gfc_input_command_down("thrustforward") ? 1 : (gfc_input_command_down("thrustback") ? -1 : 0);
     boost = gfc_input_command_down("thrustboost");
     if (dir) {
@@ -72,8 +70,6 @@ void player_think(Entity* ent) {
             usedEnergy += usage;
         }
     }
-
-    slog("thrust used energy %f/%f", usedEnergy, usableEnergy);
 
     data->deltaSpeed = dir * speed;
     data->deltaMaxSpeed = speed;
@@ -88,8 +84,6 @@ void player_think(Entity* ent) {
             usedEnergy += usage;
         }
     }
-
-    slog("weapon used energy %f/%f", usedEnergy, usableEnergy);
 
     for (i = 0; i < ship->hull->maxReactors; i++) {
         diff = fminf(fminf(ship->storedEnergy[i], usedEnergy), ship->reactors[i]->capacity);
@@ -230,5 +224,17 @@ int player_fire_weapon(Entity* ent, WeaponSlot* slot) {
 
     slot->fireCooldown = 1500.f / slot->weapon->fireRate;
     slot->weapon->fire(slot->weapon, ent);
+    return 1;
+}
+
+int player_try_ftl(Galaxy* galaxy, SolarSystem* targetSolarSystem, GFC_Vector3D targetPos) {
+    if (!galaxy || !targetSolarSystem || !player) return 0;
+
+    // TODO: Add FTL checks (energy, cooldowns, etc)
+    slog("FTL Jump to Solar System at pos: %f %f %f", targetPos.x, targetPos.y, targetPos.z);
+    world_set_target_solarSystem(targetSolarSystem);
+    player->position = targetPos;
+    player->physicsBody->position = targetPos;
+    player->physicsBody->velocity = gfc_vector3d(0,0,0);
     return 1;
 }

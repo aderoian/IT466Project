@@ -117,6 +117,17 @@ void world_despawn_solarSystem() {
         if (!body || !body->entity) continue;
         entity_free(body->entity);
     }
+
+    world.solarSystem = NULL;
+
+    for (i = 0; i < gfc_list_count(world.asteroids); i++) {
+        Entity* body = (Entity*) gfc_list_get_nth(world.asteroids, i);
+        if (body) {
+            entity_free(body);
+            gfc_list_set_nth(world.asteroids, i, NULL);
+        }
+    }
+    world.numAsteroids = 0;
 }
 
 SolarSystem* world_get_target_solarSystem() {
@@ -125,6 +136,7 @@ SolarSystem* world_get_target_solarSystem() {
 
 void world_set_target_solarSystem(SolarSystem* solarSystem) {
     if (!solarSystem) return;
+    world_despawn_solarSystem();
     world.solarSystem = solarSystem;
     world_spawn_solarSystem();
 }
