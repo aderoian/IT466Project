@@ -9,8 +9,8 @@ typedef struct UIElement_s {
     Sprite* sprite;
     GFC_Vector2D position;
     GFC_Rect localBounding;
-    GFC_Rect bounding;
-    struct UIElement_s* child;
+    struct UIElement_s** children;
+    int childCount;
 
     void (*update) (float deltaTime);
     void (*onOpen) (void);
@@ -36,6 +36,7 @@ void ui_close_menu();
 
 void ui_update(float deltaTime);
 void ui_draw();
+void ui_draw_element(UIElement* el);
 
 int ui_blocking();
 

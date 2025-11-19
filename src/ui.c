@@ -46,7 +46,7 @@ void ui_close_menu() {
 }
 
 void ui_update(float deltaTime) {
-    int i;
+    int i, j;
     UIElement* el;
     UIOpenCommandCallback* cb;
     if (ui_manager.commandCallbacks) {
@@ -78,32 +78,42 @@ void ui_update(float deltaTime) {
 
 
     el = ui_manager.overlay;
-    while (el) {
+    if (el) {
         if (el->update) el->update(deltaTime);
-        el = el->child;
+        for (j = 0; j < el->childCount; j++) {
+            if (el->children[j] && el->children[j]->update) {
+                el->children[j]->update(deltaTime);
+            }
+        }    
     }
 
     el = ui_manager.menu;
-    while (el) {
+    if (el) {
         if (el->update) el->update(deltaTime);
-        el = el->child;
+        for (j = 0; j < el->childCount; j++) {
+            if (el->children[j] && el->children[j]->update) {
+                el->children[j]->update(deltaTime);
+            }
+        }
     }
 }
 
 void ui_draw() {
-    UIElement* el;
-    el = ui_manager.overlay;
-    while (el) {
-        if (el->draw) el->draw();
-        else gf2d_sprite_draw_image(el->sprite, el->position);
-        el = el->child;
-    }
+    ui_draw_element(ui_manager.overlay);
+    ui_draw_element(ui_manager.menu);
+}
 
-    el = ui_manager.menu;
-    while (el) {
-        if (el->draw) el->draw();
-        else gf2d_sprite_draw_image(el->sprite, el->position);
-        el = el->child;
+void ui_draw_element(UIElement* el) {
+    int i;
+    if (!el) return;
+    if (el->draw) el->draw();
+    else {
+        gf2d_sprite_draw_image(el->sprite, el->position);
+        for (i = 0; i < el->childCount; i++) {
+            if (el->children[i]) {
+                ui_draw_element(el->children[i]);
+            }
+        }
     }
 }
 
@@ -145,6 +155,8 @@ UIElement* ui_element_create_simple(const char *filename, GFC_Vector2D pos) {
 
     el->sprite = sprite;
     el->position = pos;
+    el->children = NULL;
+    el->childCount = 0;
     gfc_rect_set(el->localBounding, pos.x, pos.y, (sprite->frameWidth * sprite->widthPercent), (sprite->frameHeight * sprite->heightPercent));
     return el;
 }
