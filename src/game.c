@@ -32,6 +32,7 @@
 #include "ui.h"
 #include "overlay.h"
 #include "world_map.h"
+#include "main_menu.h"
 
 extern int __DEBUG;
 
@@ -47,41 +48,15 @@ void exitGame()
     _done = 1;
 }
 
-Entity* spawn_circle(GFC_Vector3D pos, float scale) {
-    Entity* self = entity_new();
-    self->mesh = gf3d_mesh_load("models/primitives/sphere.obj");
-    self->texture = gf3d_texture_load("models/primitives/flatwhite.png");
-    self->color = GFC_COLOR_WHITE;
-    self->position = pos;
-    self->rotation = quaternion_create(0, 0, 0, 1);
-    gfc_vector3d_scale(self->scale, self->scale, scale);
-
-    slog("spawning circle at: %f %f %f r%f", self->position.x, self->position.y, self->position.z);
-
-    self->physicsBody = physics_body_create();
-    self->physicsBody->position = self->position;
-    self->physicsBody->mass = 100.f;
-    self->physicsBody->invMass = 0; // Planets become "static"
-    self->physicsBody->owner = self;
-    self->physicsBody->shape.type = FLAG_SPHERE;
-    self->physicsBody->shape.Shape.sphere.w = scale;
-
-    return self;
-}
-
-
 int main(int argc,char *argv[])
 {
     //local variables
-    int i, j, k;
     float now, then;
     Mesh* mesh;
     Texture* texture;
-    Entity* player;
-    GFC_Vector3D playerPos = {0,0,50};
     GFC_Matrix4 skyboxMat = {0};
-    GFC_Vector3D cam = {0,-50,0};
     GFC_Vector3D light = {0, 0, 0};
+    GFC_Vector3D cam = {0,-50,0};
 
     //initializtion    
     parse_arguments(argc,argv);
@@ -114,18 +89,11 @@ int main(int argc,char *argv[])
     ui_init();
     physics_init(2048);
     entity_init(2048);
-    world_init();
 
-    player = init_player(playerPos, GFC_COLOR_WHITE);
-    camera_entity_spawn(cam, player, 50, 10);
+    cameraEntity = camera_entity_spawn(cam, NULL, 50, 10);
 
-    world_generate_universe(world_get_universe(), 1080, 580);
-    world_set_target_solarSystem(world_get_universe()->galaxies[0]->solarSystems[0]);
-
-    world_map_load();
-    overlay_init();
-
-    world_map_set_player_location(0, 0);
+    main_menu_load();
+    ui_open_menu(main_menu_get());
 
     // main game loop
     now = SDL_GetTicks() / 1000.f;

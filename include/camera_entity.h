@@ -7,6 +7,8 @@
 #include "entity.h"
 #include "quaternion.h"
 
+extern Entity* cameraEntity;
+
 /**
  * @brief Spawns the camera entity which is reponsible for moving and rotating the game camera.
  *
@@ -18,5 +20,7 @@
  * @return The spawned camera entity, NULL if error.
  */
 Entity* camera_entity_spawn(GFC_Vector3D pos, Entity* target, float followBehind, float followHeight);
+
+void camera_entity_set_target(Entity* cameraEntity, Entity* target);
 
 #endif

@@ -3,6 +3,8 @@
 
 #include "camera_entity.h"
 
+Entity* cameraEntity = NULL;
+
 typedef struct {
     Entity* target;
     Quaternion rotation;
@@ -17,7 +19,6 @@ void camera_entity_think(Entity* ent) {
 
     data = (CameraEntityData*) ent->data;
     if (!data->target) {
-        slog("error: camera has no target entity");
         return;
     }
 
@@ -64,5 +65,13 @@ Entity* camera_entity_spawn(GFC_Vector3D pos, Entity* target, float followBehind
     entity->free = camera_entity_free;
     entity->position = pos;
 
+    cameraEntity = entity;
     return entity;
+}
+
+void camera_entity_set_target(Entity* cameraEntity, Entity* target) {
+    CameraEntityData* data;
+    if (!cameraEntity || !cameraEntity->data) return;
+    data = (CameraEntityData*) cameraEntity->data;
+    data->target = target;
 }
