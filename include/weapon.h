@@ -20,6 +20,7 @@ typedef struct Weapon_s {
     GFC_TextLine name;
     AmmoType ammoType;
     AmmoResource* ammoResource;
+    char* soundFile;
     int depletion;
     int reloadDelay;
     int fireRate;

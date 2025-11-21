@@ -30,7 +30,6 @@ void bullet_on_collide(const CollisionInfo* info) {
     bData = bullet->data;
     aData = other->data;
     if (strcmp(other->name, "asteroid") == 0) {
-        slog("hit");
         aData->health -= bData->weapon->damage;
     }
 

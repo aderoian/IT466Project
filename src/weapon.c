@@ -1,5 +1,6 @@
 #include "simple_logger.h"
 
+#include "gfc_audio.h"
 #include "weapon.h"
 #include "bullet_entity.h"
 
@@ -15,6 +16,7 @@ Weapon g_weapons[] = {
         "Lazer",                // Name
         PLASMA,                 // Ammo Type
         &ammoResources[0],      // Ammo Resource
+        "sounds/weapons/lazer_fire_1.wav", // Sound File
         10,                     // Depletion
         100,                    // Reload Delay
         100,                    // Fire Rate
@@ -27,6 +29,7 @@ Weapon g_weapons[] = {
         "Dual Lazer",           // Name
         PLASMA,                 // Ammo Type
         &ammoResources[0],      // Ammo Resource
+        "sounds/weapons/lazer_fire_1.wav", // Sound File
         20,                     // Depletion
         100,                    // Reload Delay
         200,                    // Fire Rate
@@ -39,6 +42,7 @@ Weapon g_weapons[] = {
         "Quad Lazer",           // Name
         PLASMA,                 // Ammo Type
         &ammoResources[0],      // Ammo Resource
+        "sounds/weapons/lazer_fire_1.wav", // Sound File
         40,                     // Depletion
         100,                    // Reload Delay
         400,                    // Fire Rate
@@ -51,6 +55,7 @@ Weapon g_weapons[] = {
         "Plasma Beam",          // Name
         PLASMA,                 // Ammo Type
         &ammoResources[0],      // Ammo Resource
+        "sounds/weapons/lazer_fire_1.wav", // Sound File
         100,                    // Depletion
         100,                    // Reload Delay
         100,                    // Fire Rate
@@ -64,6 +69,7 @@ Weapon g_weapons[] = {
 void fire_lazer_cannon(Weapon* weapon, Entity* shooter) {
     Entity* bullet;
     GFC_Vector3D velocity;
+    GFC_Sound* sound;
     if (!weapon || !shooter) return;
 
     quaternion_rotate_v(&velocity, shooter->rotation, gfc_vector3d(0,1,0));
@@ -71,11 +77,20 @@ void fire_lazer_cannon(Weapon* weapon, Entity* shooter) {
 
     bullet = bullet_spawn(shooter, weapon, shooter->position, velocity);
     if (bullet) quaternion_copy(&bullet->rotation, shooter->rotation);
+
+    slog("loading sound from file: %s", weapon->soundFile);
+    sound = gfc_sound_load(weapon->soundFile, 1.0f, 0);
+    if (sound) {
+        slog("playing sound");
+        gfc_sound_play_to_group(sound, 0, 1.0f, "world");
+        //gfc_sound_free(sound);
+    }
 }
 
 void fire_dual_lazer_cannon(Weapon* weapon, Entity* shooter) {
     Entity* bullet;
     GFC_Vector3D velocity, right, pos1, pos2;
+    GFC_Sound* sound;
     if (!weapon || !shooter) return;
 
     quaternion_rotate_v(&velocity, shooter->rotation, gfc_vector3d(0,1,0));
@@ -92,11 +107,20 @@ void fire_dual_lazer_cannon(Weapon* weapon, Entity* shooter) {
     if (bullet) quaternion_copy(&bullet->rotation, shooter->rotation);
     bullet = bullet_spawn(shooter, weapon, pos2, velocity);
     if (bullet) quaternion_copy(&bullet->rotation, shooter->rotation);
+
+    slog("loading sound from file: %s", weapon->soundFile);
+    sound = gfc_sound_load(weapon->soundFile, 1.0f, 0);
+    if (sound) {
+        slog("playing sound");
+        gfc_sound_play(sound, 0, 1.0f, -1);
+        gfc_sound_free(sound);
+    }
 }
 
 void fire_quad_lazer_cannon(Weapon* weapon, Entity* shooter) {
     Entity* bullet;
     GFC_Vector3D velocity, up, right, pos1, pos2, pos3, pos4, tmp;
+    GFC_Sound* sound;
     if (!weapon || !shooter) return;
 
     quaternion_rotate_v(&velocity, shooter->rotation, gfc_vector3d(0,1,0));
@@ -130,6 +154,14 @@ void fire_quad_lazer_cannon(Weapon* weapon, Entity* shooter) {
     if (bullet) quaternion_copy(&bullet->rotation, shooter->rotation);
     bullet = bullet_spawn(shooter, weapon, pos4, velocity);
     if (bullet) quaternion_copy(&bullet->rotation, shooter->rotation);
+
+    slog("loading sound from file: %s", weapon->soundFile);
+    sound = gfc_sound_load(weapon->soundFile, 1.0f, 0);
+    if (sound) {
+        slog("playing sound");
+        gfc_sound_play(sound, 0, 1.0f, -1);
+        gfc_sound_free(sound);
+    }
 }
 
 void fire_plasma_beam(Weapon* weapon, Entity* shooter) {
