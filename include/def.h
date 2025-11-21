@@ -6,7 +6,7 @@
 typedef struct SJson_S DefinitionData;
 
 typedef struct Definition_s {
-    Uint8 _inuse;
+    Uint32 _refc;
     char *name;
     DefinitionData *data;
 } Definition;

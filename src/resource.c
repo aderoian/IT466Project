@@ -1,0 +1,44 @@
+#include "simple_logger.h"
+
+#include "def.h"
+#include "resource.h"
+
+typedef struct ResourceList_s {
+    Resource *resources;
+    int count;
+} ResourceList;
+
+ResourceList g_resourceList = {0};
+
+void resource_init() {
+    DefinitionData *def, *rListDef, *rDef;
+    int i;
+    def = def_load("defs/resources.def");
+    if (!def) {
+        slog("Failed to load resources.def\n");
+        return;
+    }
+
+    rListDef = def_data_get_array(def, "resources");
+    if (!rListDef) {
+        slog("No resources found in resources.def\n");
+        return;
+    }
+
+    def_data_array_get_count(rListDef, &g_resourceList.count);
+    g_resourceList.resources = malloc(sizeof(Resource) * g_resourceList.count);
+    for (i = 0; i < g_resourceList.count; i++) {
+        rDef = def_data_array_get_nth(rListDef, i);
+        g_resourceList.resources[i].name = strdup(def_data_get_string(rDef, "name"));
+        g_resourceList.resources[i].type = RESOURCE_TYPE_UNKNOWN;
+    }
+}
+
+const Resource* resource_get_by_name(const char *name) {
+    int i;
+    for (i = 0; i < g_resourceList.count; i++) {
+        if (strcmp(g_resourceList.resources[i].name, name) == 0)
+            return &g_resourceList.resources[i];
+    }
+    return NULL;
+}

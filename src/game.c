@@ -34,6 +34,7 @@
 #include "world_map.h"
 #include "main_menu.h"
 #include "def.h"
+#include "resource.h"
 
 extern int __DEBUG;
 
@@ -54,7 +55,6 @@ int main(int argc,char *argv[])
     //local variables
     float now, then;
     Mesh* mesh;
-    DefinitionData* def;
     Texture* texture;
     GFC_Matrix4 skyboxMat = {0};
     GFC_Vector3D light = {0, 0, 0};
@@ -89,30 +89,13 @@ int main(int argc,char *argv[])
     texture = gf3d_texture_load("models/sky/sky.png");
 
     def_init(1024);
-    //def_load_directory("defs");
+    def_load_directory("defs"); // Load our default definitions
+
+    resource_init();
+
     ui_init();
     physics_init(2048);
     entity_init(2048);
-
-    def_load("defs/test.def");
-    def = def_load("defs/test.def");
-    if (!def)
-    {
-        slog("Failed to load definition 'test'");
-    } else {
-        slog("Definition 'test' loaded:");
-        sj_echo(def);
-    }
-
-    float size;
-    int speed, kills;
-    char *name;
-
-    def_data_get_int(def, "speed", &speed),
-    name = def_data_get_string(def, "name"),
-    def_data_get_float(def, "size", &size),
-    def_data_get_int(def_data_get_obj(def, "stats"), "kills", &kills);
-    slog("speed: %d\nName: %s\nsize: %f\nkills: %d", speed, name, size, kills);
 
     cameraEntity = camera_entity_spawn(cam, NULL, 50, 10);
 

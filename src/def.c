@@ -20,7 +20,7 @@ void def_close() {
     int i;
     if (def_manager.definitions) {
         for (i = 0; i < def_manager.defMax; i++) {
-            if (def_manager.definitions[i]._inuse) {
+            if (def_manager.definitions[i]._refc) {
                 def_free(&def_manager.definitions[i]);
             }
         }
@@ -43,8 +43,8 @@ void def_init(unsigned int maxDefs) {
 Definition *def_new() {
     int i;
     for (i = 0; i < def_manager.defMax; i++) {
-        if (!def_manager.definitions[i]._inuse) {
-            def_manager.definitions[i]._inuse = 1;
+        if (!def_manager.definitions[i]._refc) {
+            def_manager.definitions[i]._refc += 1;
             return &def_manager.definitions[i];
         }
     }
@@ -58,7 +58,8 @@ DefinitionData *def_load(const char *filename) {
     int i;
     if (!filename) return NULL;
     for (i = 0; i < def_manager.defMax; i++) {
-        if (def_manager.definitions[i]._inuse && strcmp(def_manager.definitions[i].name, filename) == 0) {
+        if (def_manager.definitions[i]._refc && strcmp(def_manager.definitions[i].name, filename) == 0) {
+            def_manager.definitions[i]._refc++;
             return def_manager.definitions[i].data;
         }
     }
@@ -118,7 +119,11 @@ void def_load_directory(const char *directory) {
 }
 
 void def_free(Definition *def) {
-    if (!def) return;
+    if (!def || !def->_refc) return;
+
+    def->_refc--;
+    if (def->_refc <= 0) return;
+
     if (def->name) {
         free(def->name);
         def->name = NULL;
@@ -127,7 +132,7 @@ void def_free(Definition *def) {
         sj_free(def->data);
         def->data = NULL;
     }
-    def->_inuse = 0;
+    def->_refc = 0;
 }
 
 DefinitionData *def_data_get_obj(DefinitionData *def, const char *key) {
