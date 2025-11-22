@@ -8,6 +8,7 @@
 #include "weapon.h"
 #include "ship.h"
 #include "world.h"
+#include "civilization.h"
 
 typedef struct {
     GFC_Vector3D rotVelocity;
@@ -20,6 +21,8 @@ typedef struct {
     int hullL;
     int engineL;
     int weaponL;
+
+    const Civilization *civilContact;
 } PlayerData;
 
 extern Entity* player;

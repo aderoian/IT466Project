@@ -92,12 +92,14 @@ int main(int argc,char *argv[])
     def_load_directory("defs"); // Load our default definitions
 
     resource_init();
+    civilization_init();
 
     ui_init();
     physics_init(2048);
     entity_init(2048);
 
     cameraEntity = camera_entity_spawn(cam, NULL, 50, 10);
+    civilization_spawn(gfc_vector3d(0, 0, 0), civilization_get_by_name("Armen's Colony"));
 
     main_menu_load();
     ui_open_menu(main_menu_get());

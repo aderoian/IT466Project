@@ -299,6 +299,7 @@ void physics_resolve_collisions() {
         for (i = 0; i < gfc_list_get_count(collisionBuffer); i++) {
             info = (CollisionInfo*) gfc_list_get_nth(collisionBuffer, i);
             if (!info) continue;
+            if (!(info->a->flags & FLAG_NO_COLLISION_RESOLUTION || info->b->flags & FLAG_NO_COLLISION_RESOLUTION))
                 physics_resolve_collision(info);
         }
     }
@@ -306,7 +307,7 @@ void physics_resolve_collisions() {
     for (i = 0; i < gfc_list_get_count(collisionBuffer); i++) {
             info = (CollisionInfo*) gfc_list_get_nth(collisionBuffer, i);
             if (!info) continue;
-            if (!(info->a->flags & FLAG_NOT_COLLIDABLE || info->b->flags & FLAG_NOT_COLLIDABLE))
+            if (!(info->a->flags & FLAG_NO_COLLISION_RESOLUTION || info->b->flags & FLAG_NO_COLLISION_RESOLUTION))
                 physics_resolve_collision_position(info);
     }
 }

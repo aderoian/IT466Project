@@ -1,5 +1,7 @@
 #include "simple_logger.h"
 
+#include "simple_json.h"
+
 #include "def.h"
 #include "resource.h"
 
@@ -41,4 +43,10 @@ const Resource* resource_get_by_name(const char *name) {
             return &g_resourceList.resources[i];
     }
     return NULL;
+}
+
+void resource_amount_from_config(SJson *cfg, ResourceAmount *out) {
+    if (!cfg || !out) return;
+    out->resource = resource_get_by_name(sj_object_get_value_as_string(cfg, "resource"));
+    sj_object_get_value_as_int(cfg, "amount", &out->amount);
 }

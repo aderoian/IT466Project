@@ -35,6 +35,7 @@ int ui_open_menu(UIElement* e) {
     ui_manager.menu = e;
     if (ui_manager.menu->onOpen) ui_manager.menu->onOpen();
     gf2d_mouse_show();
+    ui_manager.blocking = 1;
     return 1;
 }
 
@@ -42,6 +43,7 @@ void ui_close_menu() {
     if (!ui_manager.menu) return;
     if (ui_manager.menu->onClose) ui_manager.menu->onClose();
     ui_manager.menu = NULL;
+    ui_manager.blocking = 0;
     gf2d_mouse_hide();
 }
 

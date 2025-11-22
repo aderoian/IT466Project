@@ -5,6 +5,7 @@
 #include "bullet_entity.h"
 
 #include "player.h"
+#include "ui.h"
 
 #define PLAYER_SPEED 1000.0f
 #define PLAYER_SENSITIVITY 0.001f
@@ -38,6 +39,13 @@ void on_collide(const CollisionInfo* info) {
     pData = (PlayerData*) player->data;
     if (strcmp(other->name, "asteroid") == 0 || strcmp(other->name, "celestial") == 0) {
         pData->ship.durability -= gfc_vector3d_magnitude(vel) * 0.10f;
+    } else 
+    
+    if (strcmp(other->name, "civilization") == 0) {
+        if (!pData->civilContact)
+            pData->civilContact = ((CivilizationEntityData*) other->data)->civilization;
+    } else {
+        pData->civilContact = NULL;
     }
 }
 
@@ -60,28 +68,34 @@ void player_think(Entity* ent) {
         usableEnergy += ship->storedEnergy[i];
     }
 
-    dir = gfc_input_command_down("thrustforward") ? 1 : (gfc_input_command_down("thrustback") ? -1 : 0);
-    boost = gfc_input_command_down("thrustboost");
-    if (dir) {
-        for (i = 0; i < ship->hull->maxEngines; i++) {
-            usage = boost ? ship->engines[i]->boostUsage : ship->engines[i]->usage;
-            if (usedEnergy + usage > usableEnergy) continue;
-            speed += boost ? ship->engines[i]->boostThrust : ship->engines[i]->thrust;
-            usedEnergy += usage;
+    if (!ui_blocking()) {
+        dir = gfc_input_command_down("thrustforward") ? 1 : (gfc_input_command_down("thrustback") ? -1 : 0);
+        boost = gfc_input_command_down("thrustboost");
+        if (dir) {
+            for (i = 0; i < ship->hull->maxEngines; i++) {
+                usage = boost ? ship->engines[i]->boostUsage : ship->engines[i]->usage;
+                if (usedEnergy + usage > usableEnergy) continue;
+                speed += boost ? ship->engines[i]->boostThrust : ship->engines[i]->thrust;
+                usedEnergy += usage;
+            }
         }
-    }
 
-    data->deltaSpeed = dir * speed;
-    data->deltaMaxSpeed = speed;
+        data->deltaSpeed = dir * speed;
+        data->deltaMaxSpeed = speed;
 
-    data->weaponsFired = 0;
-    for (i = 0; i < 3; i++) {
-        if (!ship->weapons[i].weapon) continue;
-        if (gf2d_mouse_button_held(i) && ship->weapons[i].fireCooldown <= 0) {
-            usage = ship->weapons[i].weapon->depletion;
-            if (usedEnergy + usage > usableEnergy) continue;
-            data->weaponsFired |= (1 << i);
-            usedEnergy += usage;
+        data->weaponsFired = 0;
+        for (i = 0; i < 3; i++) {
+            if (!ship->weapons[i].weapon) continue;
+            if (gf2d_mouse_button_held(i) && ship->weapons[i].fireCooldown <= 0) {
+                usage = ship->weapons[i].weapon->depletion;
+                if (usedEnergy + usage > usableEnergy) continue;
+                data->weaponsFired |= (1 << i);
+                usedEnergy += usage;
+            }
+        }
+
+        if (data->civilContact && gfc_input_command_pressed("trade")) {
+            civilization_trade_open(data->civilContact);
         }
     }
 
@@ -121,39 +135,54 @@ void player_update(Entity* ent) {
     PlayerData* data;
     if (!ent) return;
 
-    data = (PlayerData*) ent->data;
+    if (!ui_blocking()) {
+        data = (PlayerData*) ent->data;
 
-    SDL_GetRelativeMouseState(&mdx, &mdy);
-    data->rotVelocity.z += clamp(mdx, -PLAYER_ROTATION_CLAMP, PLAYER_ROTATION_CLAMP) * PLAYER_SENSITIVITY;
-    data->rotVelocity.x += clamp(mdy, -PLAYER_ROTATION_CLAMP, PLAYER_ROTATION_CLAMP) * PLAYER_SENSITIVITY;
+        SDL_GetRelativeMouseState(&mdx, &mdy);
+        data->rotVelocity.z += clamp(mdx, -PLAYER_ROTATION_CLAMP, PLAYER_ROTATION_CLAMP) * PLAYER_SENSITIVITY;
+        data->rotVelocity.x += clamp(mdy, -PLAYER_ROTATION_CLAMP, PLAYER_ROTATION_CLAMP) * PLAYER_SENSITIVITY;
 
-    if (gfc_input_command_down("rollleft"))
-        rollDelta -= PLAYER_ROLL_SENSITIVITY;
-    if (gfc_input_command_down("rollright"))
-        rollDelta += PLAYER_ROLL_SENSITIVITY;
-    data->rotVelocity.y =+ clamp(data->rotVelocity.y + rollDelta, -PLAYER_ROLL_CLAMP, PLAYER_ROLL_CLAMP);
+        if (gfc_input_command_down("rollleft"))
+            rollDelta -= PLAYER_ROLL_SENSITIVITY;
+        if (gfc_input_command_down("rollright"))
+            rollDelta += PLAYER_ROLL_SENSITIVITY;
+        data->rotVelocity.y =+ clamp(data->rotVelocity.y + rollDelta, -PLAYER_ROLL_CLAMP, PLAYER_ROLL_CLAMP);
 
-    rot = &ent->rotation;
-    rotation.x = data->rotVelocity.x * ROTATION_DT;
-    rotation.z = data->rotVelocity.z * ROTATION_DT;
-    rotation.y = data->rotVelocity.y * 0.015;
-    gfc_vector3d_sub(data->rotVelocity, data->rotVelocity, rotation);
+        rot = &ent->rotation;
+        rotation.x = data->rotVelocity.x * ROTATION_DT;
+        rotation.z = data->rotVelocity.z * ROTATION_DT;
+        rotation.y = data->rotVelocity.y * 0.015;
+        gfc_vector3d_sub(data->rotVelocity, data->rotVelocity, rotation);
 
-    half = -rotation.x * 0.5f;
-    delta = quaternion_create(sinf(half), 0, 0, cosf(half));
-    quaternion_multiply_q(rot, *rot, delta);
+        half = -rotation.x * 0.5f;
+        delta = quaternion_create(sinf(half), 0, 0, cosf(half));
+        quaternion_multiply_q(rot, *rot, delta);
 
-    half = rotation.y * 0.5f;
-    delta = quaternion_create(0, sinf(half), 0, cosf(half));
-    quaternion_multiply_q(rot, *rot, delta);
+        half = rotation.y * 0.5f;
+        delta = quaternion_create(0, sinf(half), 0, cosf(half));
+        quaternion_multiply_q(rot, *rot, delta);
 
-    half = -rotation.z * 0.5f;
-    delta = quaternion_create(0, 0, sinf(half), cosf(half));
-    quaternion_multiply_q(rot, *rot, delta);
-    quaternion_normalize(rot);
+        half = -rotation.z * 0.5f;
+        delta = quaternion_create(0, 0, sinf(half), cosf(half));
+        quaternion_multiply_q(rot, *rot, delta);
+        quaternion_normalize(rot);
+
+        speedSq = gfc_vector3d_magnitude_squared(ent->physicsBody->velocity);
+        quaternion_rotate_v(&forward, *rot, gfc_vector3d(0,1,0));
+
+        if (speedSq < data->deltaMaxSpeed * data->deltaMaxSpeed) {
+            gfc_vector3d_scale(velocity, forward, data->deltaSpeed);
+            physics_add_impulse(ent->physicsBody, velocity);
+        }
+
+        for (i = 0; i < 3; i++) {
+            if (data->weaponsFired & (1 << i)) {
+                player_fire_weapon(ent, &data->ship.weapons[i]);
+            }
+        }
+    }
 
     speedSq = gfc_vector3d_magnitude_squared(ent->physicsBody->velocity);
-    quaternion_rotate_v(&forward, *rot, gfc_vector3d(0,1,0));
     velocity = ent->physicsBody->velocity;
     if (speedSq < 0.0001) {
         gfc_vector3d_clear(ent->physicsBody->velocity);
@@ -161,17 +190,6 @@ void player_update(Entity* ent) {
         gfc_vector3d_normalize(&velocity);
         gfc_vector3d_scale(velocity, velocity, fminf(sqrt(speedSq), PLAYER_MOVEMENT_DRAG));
         gfc_vector3d_sub(ent->physicsBody->velocity, ent->physicsBody->velocity, velocity);
-    }
-
-    if (speedSq < data->deltaMaxSpeed * data->deltaMaxSpeed) {
-        gfc_vector3d_scale(velocity, forward, data->deltaSpeed);
-        physics_add_impulse(ent->physicsBody, velocity);
-    }
-
-    for (i = 0; i < 3; i++) {
-        if (data->weaponsFired & (1 << i)) {
-            player_fire_weapon(ent, &data->ship.weapons[i]);
-        }
     }
 }
 

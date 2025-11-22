@@ -1,0 +1,61 @@
+{
+    "civilizations": [
+        {
+            "name": "Armen's Colony",
+            "type": 1,
+            "trades": [
+                {
+                    "give": {
+                        "resource": "Iron",
+                        "amount": 5
+                    },
+                    "take": {
+                        "resource": "Computer",
+                        "amount": 1
+                    }
+                },
+                {
+                    "give": {
+                        "resource": "Iron",
+                        "amount": 5
+                    },
+                    "take": {
+                        "resource": "Computer",
+                        "amount": 1
+                    }
+                },
+                {
+                    "give": {
+                        "resource": "Iron",
+                        "amount": 5
+                    },
+                    "take": {
+                        "resource": "Computer",
+                        "amount": 1
+                    }
+                },
+                {
+                    "give": {
+                        "resource": "Iron",
+                        "amount": 5
+                    },
+                    "take": {
+                        "resource": "Computer",
+                        "amount": 1
+                    }
+                }
+            ],
+            "missions": [],
+            "model": "models/primitives/cube.obj",
+            "texture": "models/primitives/flatwhite.png"
+        },
+        {
+            "name": "Ryan's Colony",
+            "type": 1,
+            "trades": [],
+            "missions": [],
+            "model": "models/primitives/cube.obj",
+            "texture": "models/primitives/flatwhite.png"
+        }
+    ]
+}
