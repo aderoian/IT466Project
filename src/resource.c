@@ -33,6 +33,7 @@ void resource_init() {
         rDef = def_data_array_get_nth(rListDef, i);
         g_resourceList.resources[i].name = strdup(def_data_get_string(rDef, "name"));
         g_resourceList.resources[i].type = RESOURCE_TYPE_UNKNOWN;
+        g_resourceList.resources[i].icon = strdup(def_data_get_string(rDef, "icon"));
     }
 }
 

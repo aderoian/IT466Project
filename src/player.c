@@ -3,9 +3,10 @@
 #include "gf3d_vgraphics.h"
 #include "gf2d_mouse.h"
 #include "bullet_entity.h"
+#include "civilization.h"
+#include "ui.h"
 
 #include "player.h"
-#include "ui.h"
 
 #define PLAYER_SPEED 1000.0f
 #define PLAYER_SENSITIVITY 0.001f
@@ -245,8 +246,8 @@ int player_fire_weapon(Entity* ent, WeaponSlot* slot) {
     return 1;
 }
 
-int player_try_ftl(Galaxy* galaxy, SolarSystem* targetSolarSystem, GFC_Vector3D targetPos) {
-    if (!galaxy || !targetSolarSystem || !player) return 0;
+int player_try_ftl(Entity* player, Galaxy* galaxy, SolarSystem* targetSolarSystem, GFC_Vector3D targetPos) {
+    if (!player || !galaxy || !targetSolarSystem) return 0;
 
     // TODO: Add FTL checks (energy, cooldowns, etc)
     slog("FTL Jump to Solar System at pos: %f %f %f", targetPos.x, targetPos.y, targetPos.z);
@@ -255,4 +256,19 @@ int player_try_ftl(Galaxy* galaxy, SolarSystem* targetSolarSystem, GFC_Vector3D 
     player->physicsBody->position = targetPos;
     player->physicsBody->velocity = gfc_vector3d(0,0,0);
     return 1;
+}
+
+int player_try_take_resource(Entity* player, const ResourceAmount* resAmount) {
+    if (!player || !resAmount) return;
+
+    // TODO: Add resource management
+    slog("Took %d of %s from player", resAmount->amount, resAmount->resource->name);
+    return 1;
+}
+
+void player_give_resource(Entity* player, const ResourceAmount* resAmount) {
+    if (!player || !resAmount) return;
+
+    // TODO: Add resource management
+    slog("Gave player %d of %s", resAmount->amount, resAmount->resource->name);
 }

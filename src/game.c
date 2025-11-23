@@ -35,6 +35,7 @@
 #include "main_menu.h"
 #include "def.h"
 #include "resource.h"
+#include "civilization.h"
 
 extern int __DEBUG;
 

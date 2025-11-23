@@ -1,11 +1,13 @@
 #include "simple_logger.h"
 
 #include "gfc_input.h"
+#include "gf2d_mouse.h"
 #include "gf2d_font.h"
 
 #include "ui.h"
 #include "def.h"
 #include "civilization.h"
+#include "player.h"
 
 typedef struct CivilizationList_s {
     Civilization *civilizations;
@@ -20,11 +22,18 @@ typedef struct TradeMenu_s {
     const Civilization* civ;
 } TradeMenu;
 
+typedef struct TradeCardData_s {
+    CivilTrade* trade;
+    GFC_Vector2D pos;
+} TradeCardData;
+
 CivilizationList g_civilizationList = {0};
 static TradeMenu c_tradeMenu = {0};
 
 void civilization_trade_update(float deltaTime);
 void civilization_trade_draw();
+void civilization_trade_click();
+void civilization_trade_close();
  
 void civilization_init() {
     DefinitionData *def, *cListDef, *cDef, *cResDef, *cMisDef, *cTradeDef;
@@ -87,6 +96,8 @@ void civilization_init() {
     c_tradeMenu.baseUI = ui_element_create_simple("images/ui/trade/trade_background.png", gfc_vector2d(0, 0));
     c_tradeMenu.baseUI->update = civilization_trade_update;
     c_tradeMenu.baseUI->draw = civilization_trade_draw;
+    c_tradeMenu.baseUI->onClick = civilization_trade_click;
+    c_tradeMenu.baseUI->onClose = civilization_trade_close;
 }
 
 const Civilization* civilization_get_by_name(const char *name) {
@@ -129,8 +140,10 @@ Entity* civilization_spawn(GFC_Vector3D pos, const Civilization* civilization) {
 }
 
 void civilization_trade_create_pages(const Civilization* civ) {
-    int numTrades, numPages, i, j, trade;
-    GFC_Vector2D pos;
+    int numTrades, numPages, i, j, tradeIdx;
+    CivilTrade* trade;
+    TradeCardData* data;
+    GFC_Vector2D pos, iconPos;
     if (!civ || !civ->trades) {
         slog ("civ has no trade list");
         c_tradeMenu.pages = NULL;
@@ -140,25 +153,28 @@ void civilization_trade_create_pages(const Civilization* civ) {
 
     numTrades = gfc_list_count(civ->trades);
     numPages = numTrades % 3 == 0 ? numTrades / 3 : (numTrades / 3) + 1;
-    slog("creating %d pages for %d trades", numPages, numTrades);
     c_tradeMenu.pages = (UIElement***) gfc_allocate_array(sizeof(UIElement**), numPages);
     for (i = 0; i < numPages; i++) {
-        pos = gfc_vector2d(284, 275);
+        pos = gfc_vector2d(284, 225);
         c_tradeMenu.pages[i] = (UIElement**) gfc_allocate_array(sizeof(UIElement*), 3);
         for (j = 0; j < 3; j++) {
-            trade = i * 3 + j;
-            slog("trade %d", trade);
-            if (trade >= numTrades) break;
-            pos.x += i * 256;
+            tradeIdx = i * 3 + j;
+            if (tradeIdx >= numTrades) break;
+            trade = gfc_list_get_nth(civ->trades, tradeIdx);
+
+            pos.x = 284 + j * 256;
             c_tradeMenu.pages[i][j] = ui_element_create_simple("images/ui/trade/trade_card.png", pos);
+            data = gfc_allocate_array(sizeof(TradeCardData), 1);
+            data->pos = pos;
+            data->trade = trade;
+            c_tradeMenu.pages[i][j]->data = data;
+            
+            gfc_vector2d_add(iconPos, pos, gfc_vector2d(25, 25));
+            c_tradeMenu.pages[i][j]->children = gfc_allocate_array(sizeof(UIElement*), 1);
+            c_tradeMenu.pages[i][j]->children[0] = ui_element_create_simple(trade->take.resource->icon, iconPos);
+            c_tradeMenu.pages[i][j]->childCount = 1;
             // TODO: Store trade data so we can track which trade this card represents
             // TODO: This page element has children (resource image, and give/take amounts)
-        }
-    }
-
-    for (i = 0; i < numPages; i++) {
-        for (j = 0; j < 3; j++) {
-            slog("card: %p", c_tradeMenu.pages[i][j]);
         }
     }
 
@@ -178,41 +194,82 @@ void civilization_trade_open(const Civilization* civ) {
     ui_open_menu(c_tradeMenu.baseUI);
 }
 
+void civilization_trade_with(const Civilization* civ, const CivilTrade* trade) {
+    if (!civ || !trade || !player) return;
+
+    if (player_try_take_resource(player, &trade->take)) {
+        player_give_resource(player, &trade->give);
+    }
+}
+
 void civilization_trade_update(float deltaTime) {
-    static int print = 0;
+    int delta = 0;
     if (!c_tradeMenu.pages) return;
 
-    if (gfc_input_command_pressed("pagenext") && c_tradeMenu.currPage < c_tradeMenu.numPages - 1) {
-        ++c_tradeMenu.currPage;
-    } 
-    if (gfc_input_command_pressed("pagelast") && c_tradeMenu.currPage > 0) {
-        --c_tradeMenu.currPage;
-    }
-
-    // c_tradeMenu.baseUI->children = c_tradeMenu.pages[c_tradeMenu.currPage];
-    // for (int j = 0; j < 3 && !print; j++) {
-    //     slog("card: %p", c_tradeMenu.baseUI->children[j]);
-    // }
-    // print++;
-    // c_tradeMenu.baseUI->childCount = 3;
+    if (gfc_input_command_pressed("pagenext")) delta += 1;
+    if (gfc_input_command_pressed("pagelast")) delta -= 1;
+    c_tradeMenu.currPage = (c_tradeMenu.currPage + delta < 0 ? 0 : c_tradeMenu.currPage + delta) % c_tradeMenu.numPages;
 }
 
 void civilization_trade_draw() {
     char buffer[50];
     int i;
+    UIElement *tradeCard;
+    TradeCardData *data;
+    GFC_Vector2D pos;
     gf2d_sprite_draw_image(c_tradeMenu.baseUI->sprite, c_tradeMenu.baseUI->position);
-    // for (i = 0; i < c_tradeMenu.baseUI->childCount; i++) {
-    //    if (c_tradeMenu.baseUI->children[i]) {
-    //        ui_draw_element(c_tradeMenu.baseUI->children[i]);
-    //    }
-    // }
     for (i = 0; i < 3; i++) {
-        if (c_tradeMenu.pages[c_tradeMenu.currPage][i]) {
-            ui_draw_element(c_tradeMenu.pages[c_tradeMenu.currPage][i]);
+        tradeCard = c_tradeMenu.pages[c_tradeMenu.currPage][i];
+        if (tradeCard) {
+            ui_draw_element(tradeCard);
+            data = (TradeCardData*) tradeCard->data;
+            gfc_vector2d_add(pos, data->pos, gfc_vector2d(25, 185));
+            sprintf(buffer, "Give:");
+            gf2d_font_draw_line_tag(buffer, FT_Small, GFC_COLOR_WHITE, pos);
+            pos.y += 20;
+            sprintf(buffer, "%s x%d", data->trade->give.resource->name, data->trade->give.amount);
+            gf2d_font_draw_line_tag(buffer, FT_Small, GFC_COLOR_WHITE, pos);
+
+            pos.y += 30;
+            sprintf(buffer, "Take:");
+            gf2d_font_draw_line_tag(buffer, FT_Small, GFC_COLOR_WHITE, pos);
+            pos.y += 20;
+            sprintf(buffer, "%s x%d", data->trade->take.resource->name, data->trade->take.amount);
+            gf2d_font_draw_line_tag(buffer, FT_Small, GFC_COLOR_WHITE, pos);
         }
     }
 
     gf2d_font_draw_line_tag(c_tradeMenu.civ->name, FT_Normal, GFC_COLOR_WHITE, gfc_vector2d(539, 145));
     sprintf(buffer, "Page %d/%d", c_tradeMenu.currPage + 1, c_tradeMenu.numPages);
     gf2d_font_draw_line_tag(buffer, FT_Normal, GFC_COLOR_WHITE, gfc_vector2d(538, 558));
+}
+
+void civilization_trade_click() {
+    int i;
+    UIElement* card;
+    if (c_tradeMenu.numPages == 0 || !c_tradeMenu.pages || !c_tradeMenu.pages[c_tradeMenu.currPage]) return;
+    for (i = 0; i < 3; i++) {
+        card = c_tradeMenu.pages[c_tradeMenu.currPage][i];
+        if (!card) break;
+
+        if (gf2d_mouse_in_rect(card->localBounding)) {
+            civilization_trade_with(c_tradeMenu.civ, ((TradeCardData*)card->data)->trade);
+            ui_close_menu();
+            return;
+        }
+    }
+}
+
+void civilization_trade_close() {
+    int i, j;
+    if (c_tradeMenu.pages) {
+        for (i = 0; i < c_tradeMenu.numPages; i++) {
+            for (j = 0; j < 3; j++) {
+                ui_element_free(c_tradeMenu.pages[i][j]);
+            }
+            free(c_tradeMenu.pages[i]);
+        }
+        free(c_tradeMenu.pages);
+        c_tradeMenu.pages = NULL;
+    }
 }

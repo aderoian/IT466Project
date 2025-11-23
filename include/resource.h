@@ -10,6 +10,7 @@ typedef enum ResourceType_e {
 typedef struct Resource_s {
     const char* name;
     ResourceType type;
+    const char* icon;
 } Resource;
 
 typedef struct ResourceAmount_s {

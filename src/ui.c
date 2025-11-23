@@ -164,3 +164,15 @@ UIElement* ui_element_create_simple(const char *filename, GFC_Vector2D pos) {
     gfc_rect_set(el->localBounding, pos.x, pos.y, (sprite->frameWidth * sprite->widthPercent), (sprite->frameHeight * sprite->heightPercent));
     return el;
 }
+
+void ui_element_free(UIElement* el) {
+    int i;
+    if (!el) return;
+    gf2d_sprite_free(el->sprite);
+    if (el->data) free(el->data);
+    for (i = 0; el->children && i < el->childCount; i++) {
+        ui_element_free(el->children[i]);
+    }
+    if (el->children) free(el->children);
+    free(el);
+}

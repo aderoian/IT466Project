@@ -43,4 +43,6 @@ Entity* civilization_spawn(GFC_Vector3D pos, const Civilization* civilization);
 
 void civilization_trade_open(const Civilization* civ);
 
+void civilization_trade_with(const Civilization* civ, const CivilTrade* trade);
+
 #endif /* __CIVILIZATION_H__ */

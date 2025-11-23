@@ -8,7 +8,9 @@
 #include "weapon.h"
 #include "ship.h"
 #include "world.h"
-#include "civilization.h"
+
+struct ResourceAmount_s;
+struct Civilization_s;
 
 typedef struct {
     GFC_Vector3D rotVelocity;
@@ -22,7 +24,7 @@ typedef struct {
     int engineL;
     int weaponL;
 
-    const Civilization *civilContact;
+    const struct Civilization_s *civilContact;
 } PlayerData;
 
 extern Entity* player;
@@ -34,6 +36,9 @@ Entity* init_player(GFC_Vector3D position, GFC_Color color);
 
 int player_fire_weapon(Entity* ent, WeaponSlot* slot);
 
-int player_try_ftl(Galaxy* galaxy, SolarSystem* targetSolarSystem, GFC_Vector3D targetPos);
+int player_try_ftl(Entity* player, Galaxy* galaxy, SolarSystem* targetSolarSystem, GFC_Vector3D targetPos);
+
+int player_try_take_resource(Entity* player, const struct ResourceAmount_s* resAmount);
+void player_give_resource(Entity* player, const struct ResourceAmount_s* resAmount);
 
 # endif

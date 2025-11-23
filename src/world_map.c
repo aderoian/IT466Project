@@ -186,7 +186,7 @@ void world_map_on_click() {
             SolarSystem* solarSystem = galaxy->solarSystems[map_manager.solarSystem];
             if (!solarSystem) return;
 
-            if (player_try_ftl(galaxy, solarSystem, gfc_vector3d((map_manager.jumpTargetSelector->position.x - 640) * DISTANCE_SCALE_FACTOR, (map_manager.jumpTargetSelector->position.y - 360) * DISTANCE_SCALE_FACTOR, 0))) {
+            if (player_try_ftl(player, galaxy, solarSystem, gfc_vector3d((map_manager.jumpTargetSelector->position.x - 640) * DISTANCE_SCALE_FACTOR, (map_manager.jumpTargetSelector->position.y - 360) * DISTANCE_SCALE_FACTOR, 0))) {
                 map_manager.jumpTarget = 0;
                 map_manager.playerCurrentGalaxy = map_manager.galaxy;
                 map_manager.playerCurrentSolarSystem = map_manager.solarSystem;

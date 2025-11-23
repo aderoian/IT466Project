@@ -2,11 +2,13 @@
     "resources": [
         {
             "name": "Iron",
-            "type": 1
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png"
         },
         {
             "name": "Computer",
-            "type": 1
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png"
         }
     ]
 }
