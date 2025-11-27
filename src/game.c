@@ -36,6 +36,7 @@
 #include "def.h"
 #include "resource.h"
 #include "civilization.h"
+#include "mission_menu.h"
 
 extern int __DEBUG;
 
@@ -98,6 +99,8 @@ int main(int argc,char *argv[])
     ui_init();
     physics_init(2048);
     entity_init(2048);
+
+    mission_menu_init();
 
     cameraEntity = camera_entity_spawn(cam, NULL, 50, 10);
     civilization_spawn(gfc_vector3d(0, 0, 0), civilization_get_by_name("Armen's Colony"));

@@ -45,7 +45,128 @@
                     }
                 }
             ],
-            "missions": [],
+            "missions": [
+                {
+                    "give": {
+                        "resource": "Iron",
+                        "amount": 5
+                    },
+                    "take": {
+                        "resource": "Computer",
+                        "amount": 1
+                    }
+                },
+                {
+                    "give": {
+                        "resource": "Iron",
+                        "amount": 5
+                    },
+                    "take": {
+                        "resource": "Computer",
+                        "amount": 1
+                    }
+                },
+                {
+                    "give": {
+                        "resource": "Iron",
+                        "amount": 5
+                    },
+                    "take": {
+                        "resource": "Computer",
+                        "amount": 1
+                    }
+                },
+                {
+                    "give": {
+                        "resource": "Iron",
+                        "amount": 5
+                    },
+                    "take": {
+                        "resource": "Computer",
+                        "amount": 1
+                    }
+                },
+                {
+                    "give": {
+                        "resource": "Iron",
+                        "amount": 5
+                    },
+                    "take": {
+                        "resource": "Computer",
+                        "amount": 1
+                    }
+                },
+                {
+                    "give": {
+                        "resource": "Iron",
+                        "amount": 5
+                    },
+                    "take": {
+                        "resource": "Computer",
+                        "amount": 1
+                    }
+                },
+                {
+                    "give": {
+                        "resource": "Iron",
+                        "amount": 5
+                    },
+                    "take": {
+                        "resource": "Computer",
+                        "amount": 1
+                    }
+                },
+                {
+                    "give": {
+                        "resource": "Iron",
+                        "amount": 5
+                    },
+                    "take": {
+                        "resource": "Computer",
+                        "amount": 1
+                    }
+                },
+                {
+                    "give": {
+                        "resource": "Iron",
+                        "amount": 5
+                    },
+                    "take": {
+                        "resource": "Computer",
+                        "amount": 1
+                    }
+                },
+                {
+                    "give": {
+                        "resource": "Iron",
+                        "amount": 5
+                    },
+                    "take": {
+                        "resource": "Computer",
+                        "amount": 1
+                    }
+                },
+                {
+                    "give": {
+                        "resource": "Iron",
+                        "amount": 5
+                    },
+                    "take": {
+                        "resource": "Computer",
+                        "amount": 1
+                    }
+                },
+                {
+                    "give": {
+                        "resource": "Iron",
+                        "amount": 5
+                    },
+                    "take": {
+                        "resource": "Computer",
+                        "amount": 1
+                    }
+                }
+            ],
             "model": "models/primitives/cube.obj",
             "texture": "models/primitives/flatwhite.png"
         },

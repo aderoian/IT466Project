@@ -11,6 +11,7 @@
 
 struct ResourceAmount_s;
 struct Civilization_s;
+struct CivilMission_s;
 
 typedef struct {
     GFC_Vector3D rotVelocity;
@@ -25,6 +26,7 @@ typedef struct {
     int weaponL;
 
     const struct Civilization_s *civilContact;
+    GFC_List *civilMissions;
 } PlayerData;
 
 extern Entity* player;
@@ -40,5 +42,8 @@ int player_try_ftl(Entity* player, Galaxy* galaxy, SolarSystem* targetSolarSyste
 
 int player_try_take_resource(Entity* player, const struct ResourceAmount_s* resAmount);
 void player_give_resource(Entity* player, const struct ResourceAmount_s* resAmount);
+
+int player_start_mission(Entity* player, struct CivilMission_s *mission);
+int player_try_end_mission(Entity* player, struct CivilMission_s *mission, Uint8 cancel);
 
 # endif

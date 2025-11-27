@@ -72,6 +72,10 @@ void ui_update(float deltaTime) {
         }
     }
 
+    if (ui_manager.menu && gfc_input_command_pressed("cancel")) {
+        ui_close_menu();
+    }
+
     if (ui_manager.menu && gf2d_mouse_in_rect(ui_manager.menu->localBounding)) {
         if (gf2d_mouse_button_pressed(0)) {
             if (ui_manager.menu->onClick) ui_manager.menu->onClick();

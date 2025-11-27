@@ -5,6 +5,7 @@
 #include "bullet_entity.h"
 #include "civilization.h"
 #include "ui.h"
+#include "mission_menu.h"
 
 #include "player.h"
 
@@ -97,6 +98,10 @@ void player_think(Entity* ent) {
 
         if (data->civilContact && gfc_input_command_pressed("trade")) {
             civilization_trade_open(data->civilContact);
+        } else if (data->civilContact && gfc_input_command_pressed("missions")) {
+            civilization_mission_open(data->civilContact);
+        } else if (gfc_input_command_pressed("view_missions")) {
+            mission_menu_open();
         }
     }
 
@@ -220,6 +225,7 @@ Entity* init_player(GFC_Vector3D position, GFC_Color color) {
 
     data = gfc_allocate_array(sizeof(PlayerData), 1);
     ship_init_basic(&data->ship);
+    data->civilMissions = gfc_list_new();
     self->data = data;
     self->free = player_free;
     self->think = player_think;
@@ -259,7 +265,7 @@ int player_try_ftl(Entity* player, Galaxy* galaxy, SolarSystem* targetSolarSyste
 }
 
 int player_try_take_resource(Entity* player, const ResourceAmount* resAmount) {
-    if (!player || !resAmount) return;
+    if (!player || !resAmount) return 0;
 
     // TODO: Add resource management
     slog("Took %d of %s from player", resAmount->amount, resAmount->resource->name);
@@ -271,4 +277,38 @@ void player_give_resource(Entity* player, const ResourceAmount* resAmount) {
 
     // TODO: Add resource management
     slog("Gave player %d of %s", resAmount->amount, resAmount->resource->name);
+}
+
+int player_start_mission(Entity* player, struct CivilMission_s *mission) {
+    PlayerData* data;
+    if (!player || !mission) return 0;
+
+    data = (PlayerData* ) player->data;
+    if (gfc_list_get_item_index(data->civilMissions, mission) != -1) return 0;
+
+    gfc_list_append(data->civilMissions, mission);
+    return 1;
+}
+
+int player_try_end_mission(Entity* player, struct CivilMission_s *mission, Uint8 cancel) {
+    PlayerData* data;
+    if (!player || !mission) return 0;
+
+    data = (PlayerData* ) player->data;
+    if (gfc_list_get_item_index(data->civilMissions, mission) == -1) return 0;
+
+    if (cancel) {
+        gfc_list_delete_data(data->civilMissions, mission);
+        free(mission);
+        return 1;
+    }
+
+    if (player_try_take_resource(player, &mission->trans->take)) {
+        player_give_resource(player, &mission->trans->give);
+        gfc_list_delete_data(data->civilMissions, mission);
+        free(mission);
+        return 1;
+    }
+
+    return 0;
 }
