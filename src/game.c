@@ -37,6 +37,7 @@
 #include "resource.h"
 #include "civilization.h"
 #include "mission_menu.h"
+#include "celestial.h"
 
 extern int __DEBUG;
 
@@ -56,9 +57,9 @@ int main(int argc,char *argv[])
 {
     //local variables
     float now, then;
-    Mesh* mesh;
+    Mesh* mesh, *planet;
     Texture* texture;
-    GFC_Matrix4 skyboxMat = {0};
+    GFC_Matrix4 skyboxMat = {0}, planetMat;
     GFC_Vector3D light = {0, 0, 0};
     GFC_Vector3D cam = {0,-50,0};
 
@@ -103,10 +104,24 @@ int main(int argc,char *argv[])
     mission_menu_init();
 
     cameraEntity = camera_entity_spawn(cam, NULL, 50, 10);
-    civilization_spawn(gfc_vector3d(0, 0, 0), civilization_get_by_name("Armen's Colony"));
+    //civilization_spawn(gfc_vector3d(0, 0, 0), civilization_get_by_name("Armen's Colony"));
 
     main_menu_load();
     ui_open_menu(main_menu_get());
+
+    planet = generate_celestial_body(15);
+    int c = gfc_list_count(planet->primitives);
+    slog("num prims: %d", c);
+    for (int j = 0; j < c; j++) {
+        slog("prim: %p", gfc_list_get_nth(planet->primitives, j));
+    }
+
+    gfc_matrix4_from_vectors(
+        planetMat,
+        gfc_vector3d(0, 0, 0),
+        gfc_vector3d(0, 0, 0),
+        gfc_vector3d(10, 10, 10)
+    );
 
     // main game loop
     now = SDL_GetTicks() / 1000.f;
@@ -134,6 +149,8 @@ int main(int argc,char *argv[])
                 //3D draws
                 gf3d_mesh_skybox_draw(mesh,skyboxMat,GFC_COLOR_WHITE,texture);
                 entity_draw_all(light, GFC_COLOR_WHITE);
+
+                gf3d_mesh_draw(planet, planetMat, GFC_COLOR_WHITE, NULL, light, GFC_COLOR_WHITE);
 
                 gf2d_font_draw_line_tag("ALT+F4 to exit",FT_H1,GFC_COLOR_WHITE, gfc_vector2d(10,10));
                 ui_draw();

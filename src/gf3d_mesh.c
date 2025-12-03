@@ -30,10 +30,7 @@ static MeshManager mesh_manager = {0};
 
 void gf3d_mesh_free();
 void gf3d_mesh_destroy(Mesh* mesh);
-void gf3d_mesh_primitive_destroy(MeshPrimitive* prim);
 void gf3d_mesh_manager_close();
-void gf3d_mesh_create_vertex_buffer_from_vertices(MeshPrimitive *prim);
-void gf3d_mesh_create_face_buffer_from_vertices(MeshPrimitive *primitive);
 void gf3d_mesh_queue_render(Mesh *mesh,Pipeline* pipe, void* uboData,Texture *texture);
 
 void gf3d_mesh_init(Uint32 mesh_max) {
@@ -237,7 +234,6 @@ void gf3d_mesh_queue_render(Mesh *mesh, Pipeline* pipe, void* uboData,Texture *t
 MeshPrimitive *gf3d_mesh_primitive_new() {
     return gfc_allocate_array(sizeof(MeshPrimitive), 1);
 }
-
 
 VkVertexInputAttributeDescription * gf3d_mesh_get_attribute_descriptions(Uint32 *count) {
     mesh_manager.attributeDescriptions[0].binding = 0;

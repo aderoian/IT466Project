@@ -18,7 +18,7 @@ static MainMenuManager menu_manager = {0};
 
 void startGameplay() {
     Entity* player;
-    GFC_Vector3D playerPos = {0,0,50};
+    GFC_Vector3D playerPos = {0,0,0};
     
     world_init();
 
