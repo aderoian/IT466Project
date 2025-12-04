@@ -95,3 +95,19 @@ Entity* spawn_asteroid(GFC_Vector3D position, float size) {
     gfc_vector3d_scale(self->physicsBody->velocity, dir, speed);
     return self;
 }
+
+Entity* spawn_generated_celestial_entity(Mesh *mesh, Texture *texture, GFC_Vector3D scale) {
+    Entity* self;
+    if (!mesh || !texture) return NULL;
+
+    self = entity_new();
+    strcpy(self->name, "celestial");
+    self->mesh = mesh;
+    self->texture = texture;
+    self->color = GFC_COLOR_WHITE;
+    self->position = gfc_vector3d(0, 0, 0);
+    self->rotation = quaternion_create(0, 0, 0, 1);
+    self->scale = scale;
+
+    return self;
+}

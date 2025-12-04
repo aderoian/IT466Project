@@ -20,13 +20,6 @@ MeshPrimitive* generate_celestial_face(int resolution, GFC_Vector3D localUp) {
     axisA = gfc_vector3d(localUp.z, localUp.x, localUp.y);
     gfc_vector3d_cross_product(&axisB, localUp, axisA);
 
-    slog("local: %f %f %f", localUp.x, localUp.y, localUp.z);
-    slog("axis a: %f %f %f", axisA.x, axisA.y, axisA.z);
-    slog("axis b: %f %f %f", axisB.x, axisB.y, axisB.z);
-
-    if (gfc_vector3d_magnitude(axisB) < 0.0001f)
-        slog("BAD AXIS BASIS! axisB is zero vector");
-
     data->faceVertices = gfc_allocate_array(sizeof(Vertex), resolution * resolution);
     data->face_vert_count = resolution * resolution * 6;
     data->outFace = gfc_allocate_array(sizeof(Face), (resolution - 1) * (resolution - 1) * 2);
@@ -45,21 +38,20 @@ MeshPrimitive* generate_celestial_face(int resolution, GFC_Vector3D localUp) {
             gfc_vector3d_normalize(&pointOnUnitCube);
 
             gfc_vector3d_copy(data->faceVertices[i].vertex, pointOnUnitCube);
-            data->faceVertices[i].texel.y = 0.5;
-            gfc_vector3d_copy(data->faceVertices[i].normal, localUp);
-
-            slog("pos %d: %f %f %f", i, pointOnUnitCube.x, pointOnUnitCube.y, pointOnUnitCube.z);
+            gfc_vector2d_copy(data->faceVertices[i].texel, percent);
+            gfc_vector3d_copy(data->faceVertices[i].normal, pointOnUnitCube);
+            //gfc_vector3d_negate(data->faceVertices[i].normal, data->faceVertices[i].normal);
 
             if (x != resolution - 1 && y != resolution - 1)
             {
-                data->outFace[faceIndex].verts[0] = i;
+                data->outFace[faceIndex].verts[2] = i;
                 data->outFace[faceIndex].verts[1] = i + resolution;
-                data->outFace[faceIndex].verts[2] = i + resolution + 1;
+                data->outFace[faceIndex].verts[0] = i + resolution + 1;
                 faceIndex++;
 
-                data->outFace[faceIndex].verts[2] = i;
+                data->outFace[faceIndex].verts[0] = i;
                 data->outFace[faceIndex].verts[1] = i + 1;
-                data->outFace[faceIndex].verts[0] = i + resolution + 1;
+                data->outFace[faceIndex].verts[2] = i + resolution + 1;
                 faceIndex++;
             }
         }

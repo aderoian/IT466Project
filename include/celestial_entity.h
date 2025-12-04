@@ -12,4 +12,6 @@ Entity* spawn_celestial_entity(CelestialBody* body);
 
 Entity* spawn_asteroid(GFC_Vector3D position, float size);
 
+Entity* spawn_generated_celestial_entity(Mesh *mesh, Texture *texture, GFC_Vector3D scale);
+
 #endif // __CELESTIAL_ENTITY_H__

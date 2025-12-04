@@ -104,6 +104,7 @@ void gf3d_mesh_skybox_draw(Mesh *mesh,GFC_Matrix4 modelMat,GFC_Color mod,Texture
  */
 MeshPrimitive *gf3d_mesh_primitive_new();
 
+void gf3d_mesh_primitive_destroy(MeshPrimitive* prim);
 
 /**
  * @brief get the input attribute descriptions for mesh based rendering
@@ -129,6 +130,7 @@ void gf3d_mesh_free(Mesh *mesh);
  * @note the primitive must have the objData set and it must have be organizes in buffer order
  */
 void gf3d_mesh_create_vertex_buffer_from_vertices(MeshPrimitive *primitive);
+void gf3d_mesh_create_face_buffer_from_vertices(MeshPrimitive *primitive);
 
 /**
  * @brief get the pipeline that is used to render basic 3d meshes
