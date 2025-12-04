@@ -37,7 +37,7 @@
 #include "resource.h"
 #include "civilization.h"
 #include "mission_menu.h"
-#include "celestial.h"
+#include "celestial_generator.h"
 #include "celestial_entity.h"
 
 extern int __DEBUG;
@@ -133,8 +133,8 @@ void runGame() {
 
 void runPlanetEditor() {
     float now, then;
-    GFC_Vector3D light = {0, 0, 0};
-    GFC_Vector3D cam = {0,-50,0};
+    GFC_Vector3D light = {0, -100000, 0};
+    GFC_Vector3D cam = {0,-300,0};
     Mesh* skyboxMesh, *planetMesh;
     Texture* skyboxTexture, *pTexture;
     GFC_Matrix4 skyboxMat = {0};
@@ -147,11 +147,12 @@ void runPlanetEditor() {
     ui_init();
     entity_init(64);
 
-    planetMesh = generate_celestial_body(15);
+    planetMesh = generate_celestial_body(new_shape_settings(15, 15));
     pTexture = gf3d_texture_load("models/primitives/flatwhite.png");
     planet = spawn_generated_celestial_entity(planetMesh, pTexture, gfc_vector3d(10, 10, 10));
     planet->position.y = 30;
 
+    camera_entity_editor_spawn(cam);
     gf3d_camera_look_at(gfc_vector3d(0, 0, 0), &cam);
 
     // main game loop
@@ -171,7 +172,7 @@ void runPlanetEditor() {
         ui_update(now - then);
 
         //camera updaes
-        gf3d_camera_update_view();
+        gf3d_camera_update_view_q();
         gf3d_vgraphics_render_start();
                 //3D draws
                 gf3d_mesh_skybox_draw(skyboxMesh,skyboxMat,GFC_COLOR_WHITE,skyboxTexture);

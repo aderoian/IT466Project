@@ -23,4 +23,6 @@ Entity* camera_entity_spawn(GFC_Vector3D pos, Entity* target, float followBehind
 
 void camera_entity_set_target(Entity* cameraEntity, Entity* target);
 
+Entity* camera_entity_editor_spawn(GFC_Vector3D pos);
+
 #endif

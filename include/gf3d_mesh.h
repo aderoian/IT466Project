@@ -58,7 +58,7 @@ typedef struct
     ObjData        *objData;
 }MeshPrimitive;
 
-typedef struct
+typedef struct Mesh_S
 {
     GFC_TextLine        filename;
     Uint32              _refCount;
