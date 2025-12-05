@@ -39,6 +39,7 @@
 #include "mission_menu.h"
 #include "celestial_generator.h"
 #include "celestial_entity.h"
+#include "editor_menu.h"
 
 extern int __DEBUG;
 
@@ -135,22 +136,27 @@ void runPlanetEditor() {
     float now, then;
     GFC_Vector3D light = {0, -100000, 0};
     GFC_Vector3D cam = {0,-300,0};
-    Mesh* skyboxMesh, *planetMesh;
+    Mesh* skyboxMesh;
     Texture* skyboxTexture, *pTexture;
     GFC_Matrix4 skyboxMat = {0};
     Entity* planet;
+    ShapeSettings* settings;
     
     gfc_matrix4_identity(skyboxMat);
     skyboxMesh = gf3d_mesh_load("models/sky/sky.obj");
     skyboxTexture = gf3d_texture_load("models/sky/editor.png");
 
+    gf2d_mouse_hide();
+
     ui_init();
     entity_init(64);
 
-    planetMesh = generate_celestial_body(new_shape_settings(15, 15));
+    settings = new_shape_settings(15, 15);
     pTexture = gf3d_texture_load("models/primitives/flatwhite.png");
-    planet = spawn_generated_celestial_entity(planetMesh, pTexture, gfc_vector3d(10, 10, 10));
+    planet = spawn_generated_celestial_entity(pTexture, gfc_vector3d(10, 10, 10));
     planet->position.y = 30;
+
+    editor_open(settings, &planet->mesh);
 
     camera_entity_editor_spawn(cam);
     gf3d_camera_look_at(gfc_vector3d(0, 0, 0), &cam);

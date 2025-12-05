@@ -28,11 +28,18 @@ MeshPrimitive* generate_celestial_face(const Noise* noise, const ShapeSettings* 
     axisA = gfc_vector3d(localUp.z, localUp.x, localUp.y);
     gfc_vector3d_cross_product(&axisB, localUp, axisA);
 
-    data->faceVertices = gfc_allocate_array(sizeof(Vertex), resolution * resolution);
+    data->faceVertices = gfc_allocate_array(sizeof(Vertex), resolution * resolution * 6);
     data->face_vert_count = resolution * resolution * 6;
     data->outFace = gfc_allocate_array(sizeof(Face), (resolution - 1) * (resolution - 1) * 2);
     data->face_count = (resolution - 1) * (resolution - 1) * 2;
     faceIndex = 0;
+
+    if (!data->faceVertices || !data->outFace) {
+        slog("ERROR: failed to allocate vertex (%p) and/or face buffer(%p).", data->faceVertices, data->outFace);
+        gf3d_obj_free(data);
+        free(prim);
+        return NULL;
+    }
 
     for (y = 0; y < resolution; y++) {
         for (x = 0; x < resolution; x++) {
@@ -46,7 +53,6 @@ MeshPrimitive* generate_celestial_face(const Noise* noise, const ShapeSettings* 
             gfc_vector3d_normalize(&pointOnUnitCube);
 
             elevation = evaluate_noise(noise, settings, pointOnUnitCube);
-            slog("evelation: %f", elevation);
             gfc_vector3d_copy(data->faceVertices[i].normal, pointOnUnitCube);
             gfc_vector3d_scale(pointOnUnitCube, pointOnUnitCube, elevation);
 

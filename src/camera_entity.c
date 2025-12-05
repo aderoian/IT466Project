@@ -40,7 +40,7 @@ void camera_entity_update(Entity* ent) {
 }
 
 void camera_entity_editor_think(Entity* ent) {
-    GFC_Vector3D forward, right, delta = {0}, tmp, rotation = {0};
+    GFC_Vector3D forward, right, up = {0, 0, 1}, delta = {0}, tmp, rotation = {0};
     float speed = 25.0f, half;
     Quaternion *rot, deltaQ;
     if (!ent) return;
@@ -65,6 +65,14 @@ void camera_entity_editor_think(Entity* ent) {
     }
     if (gfc_input_command_down("camera_right")) {
         gfc_vector3d_scale(tmp, right, speed);
+        gfc_vector3d_add(delta, delta, tmp);
+    }
+    if (gfc_input_command_down("camera_up")) {
+        gfc_vector3d_scale(tmp, up, speed);
+        gfc_vector3d_add(delta, delta, tmp);
+    }
+    if (gfc_input_command_down("camera_down")) {
+        gfc_vector3d_scale(tmp, up, -speed);
         gfc_vector3d_add(delta, delta, tmp);
     }
 
