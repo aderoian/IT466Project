@@ -28,10 +28,10 @@ MeshPrimitive* generate_celestial_face(const Noise* noise, const ShapeSettings* 
     axisA = gfc_vector3d(localUp.z, localUp.x, localUp.y);
     gfc_vector3d_cross_product(&axisB, localUp, axisA);
 
-    data->faceVertices = gfc_allocate_array(sizeof(Vertex), resolution * resolution * 6);
-    data->face_vert_count = resolution * resolution * 6;
-    data->outFace = gfc_allocate_array(sizeof(Face), (resolution - 1) * (resolution - 1) * 2);
-    data->face_count = (resolution - 1) * (resolution - 1) * 2;
+    data->face_count = resolution  * resolution * 2;
+    data->outFace = gfc_allocate_array(sizeof(Face), data->face_count);
+    data->face_vert_count = data->face_count * 3;
+    data->faceVertices = gfc_allocate_array(sizeof(Vertex), data->face_vert_count);
     faceIndex = 0;
 
     if (!data->faceVertices || !data->outFace) {
@@ -146,9 +146,9 @@ float evaluate_noise(const Noise* noise, const ShapeSettings* settings, GFC_Vect
     }
 
     for (i = 1; i < layerCount; i++) {
-        layer = (NoiseLayer*) gfc_list_get_nth(settings->noiseLayers, 0);
+        layer = (NoiseLayer*) gfc_list_get_nth(settings->noiseLayers, i);
         if (layer->enabled) {
-            elevation += firstElevation * (layer->firstIsMask ? firstElevation : 1);
+            elevation += evaluate_noise_layer(noise, &layer->settings, point) * (layer->firstIsMask ? firstElevation : 1);
         }
     }
 

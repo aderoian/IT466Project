@@ -29,7 +29,8 @@ typedef struct EditorMenuManager_S {
 
     // Focus management for input fields
     NoiseValue* focused;
-    char focusedVal[16];
+    char focusedVal[64];
+    Uint8 mode; // 0 = keyboard, 1 = slidebar
 
     // Scroll management
     float offset;
@@ -48,7 +49,7 @@ void editor_populate_layers(ShapeSettings* settings);
 static EditorMenuManager editorMenu = {0};
 
 void editor_draw_layer_value(NoiseValue* value, GFC_Vector2D *pos) {
-    char valueData[16];
+    char valueData[64];
     GFC_Vector2D valueDataPos;
     if (!value || !pos) return;
 
@@ -59,12 +60,16 @@ void editor_draw_layer_value(NoiseValue* value, GFC_Vector2D *pos) {
 
     // Draws current value
     // TODO: draw focused & updated value as its updated
-    if (value->type == Float) {
+    if (editorMenu.focused == value) {
+        sprintf(valueData, "%s", editorMenu.focusedVal);
+    } else {
+        if (value->type == Float) {
         sprintf(valueData, "%f", *((float *)value->data));
     } else if (value->type == Boolean) {
         sprintf(valueData, "%d", *((char *)value->data));
     } else {
         sprintf(valueData, "%d", *((int *)value->data));
+    }
     }
     gfc_vector2d_add(valueDataPos, (*pos), gfc_vector2d(175, 0));
     gf2d_font_draw_line_tag(valueData, FT_Small, GFC_COLOR_WHITE, valueDataPos);
@@ -111,24 +116,80 @@ void editor_draw() {
 }
 
 void editor_click() {
-    float mousePos = gf2d_mouse_get_position().y;
+    GFC_Vector2D mousePos = gf2d_mouse_get_position();
     float layersHeight = 0;
-    int i;
-    NoiseValue *value;
+    int i, j;
+    NoiseValue *value = NULL;
     NoiseLayer* layer;
+
+    int dataInt;
+    float dataFloat;
+    Uint8 dataBool;
+
+    value = &editorMenu.radius;
+    if (!(mousePos.y >= value->element->position.y && mousePos.y < (value->element->position.y  + LAYER_VALUE_HEIGHT))) {
+        value = NULL;
+    }
+
+    value = &editorMenu.resolution;
+    if (!(mousePos.y >= value->element->position.y && mousePos.y < (value->element->position.y  + LAYER_VALUE_HEIGHT))) {
+        value = NULL;
+    }
 
     for (i = 0; i < editorMenu.numLayers; i++) {
         NoiseLayerContainer* container = editorMenu.layerContainers[i];
         if (!container) continue;
 
-        if (mousePos >= container->yPosition && mousePos < (container->yPosition + LAYER_CLOSED_HEIGHT)) {
+        if (mousePos.y >= container->yPosition && mousePos.y < (container->yPosition + LAYER_CLOSED_HEIGHT)) {
             container->expanded = !container->expanded;
+        } else if (container->expanded) {
+            for (j = 0; j < NUM_NOISE_LAYER_VALUES; j++) {
+                value = &container->values[j];
+                if (!(mousePos.y >= value->element->position.y && mousePos.y < (value->element->position.y  + LAYER_VALUE_HEIGHT))) {
+                    value = NULL;
+                } else {
+                    slog("value %d clicked", j);
+                    break;
+                }
+            }
         }
 
         layersHeight += layer_height(container->expanded);
     }
 
-    if (mousePos >= (editorMenu.addButton->position.y + layersHeight + HEADER_VALUES_HEIGHT) && mousePos < (editorMenu.addButton->position.y + 23 + layersHeight + HEADER_VALUES_HEIGHT)) {
+    slog("focused %p, mode %d, value %p", editorMenu.focused, editorMenu.mode, value);
+    if (editorMenu.focused && editorMenu.mode == 0 && (!value || editorMenu.focused != value)) {
+        if (editorMenu.focused->type == Int) {
+            dataInt = atoi(editorMenu.focusedVal);
+            editorMenu.focused->updateData(editorMenu.focused->type, editorMenu.focused->data, &dataInt);
+        } else if (editorMenu.focused->type == Float) {
+            dataFloat = atof(editorMenu.focusedVal);
+            editorMenu.focused->updateData(editorMenu.focused->type, editorMenu.focused->data, &dataFloat);
+        } else if (editorMenu.focused->type == Boolean) {
+            dataBool = atoi(editorMenu.focusedVal) != 0;
+            editorMenu.focused->updateData(editorMenu.focused->type, editorMenu.focused->data, &dataBool);
+        }
+
+        editorMenu.focused = NULL;
+        editorMenu.focusedVal[0] = '\0';
+        slog("unfocused");
+        editorMenu.dirty = 1;
+        return;
+    } else if (!editorMenu.focused && value) {
+        slog("focused");
+        editorMenu.focused = value;
+        editorMenu.mode = 0;
+        // if (editorMenu.focused->type == Int) {
+        //     sprintf(editorMenu.focusedVal, "%d", *((int*) editorMenu.focused->data));
+        // } else if (editorMenu.focused->type == Float) {
+        //     sprintf(editorMenu.focusedVal, "%f", *((float*) editorMenu.focused->data));
+        // } else if (editorMenu.focused->type == Boolean) {
+        //     sprintf(editorMenu.focusedVal, "%d", *((char*) editorMenu.focused->data));
+        // }
+        return;
+    }
+
+    if (mousePos.y >= (editorMenu.addButton->position.y + layersHeight + HEADER_VALUES_HEIGHT) && mousePos.y < (editorMenu.addButton->position.y + 23 + layersHeight + HEADER_VALUES_HEIGHT)) {
         
         layer = new_noise_layer();
         gfc_list_append(editorMenu.settings->noiseLayers, layer);
@@ -141,8 +202,7 @@ void editor_update(float deltaTime) {
     int i, j;
     float deltaMove = 0, mouseMove = gf2d_mouse_get_movement().x, layersHeight = 0, dataMove = 0;
     GFC_Vector2D mousePos = gf2d_mouse_get_position();
-    NoiseValue *value;
-    NoiseLayer* layer;
+    NoiseValue *value = NULL;
 
     int dataInt;
     Uint8 dataBool;
@@ -172,17 +232,18 @@ void editor_update(float deltaTime) {
 
     if(gf2d_mouse_button_held(0)) {
         if (!editorMenu.focused) {
-
             value = &editorMenu.radius;
-            if (mousePos.x > 980 && mousePos.y >= value->element->position.y && mousePos.y < (value->element->position.y  + LAYER_VALUE_HEIGHT)) {
-                    editorMenu.focused = value;
-                    return;
+            if (mousePos.x > 980 && mousePos.x <= (980 + 160) && mousePos.y >= value->element->position.y && mousePos.y < (value->element->position.y  + LAYER_VALUE_HEIGHT)) {
+                slog("setting held focus");
+                editorMenu.focused = value;
+                editorMenu.mode = 1;
             }
 
             value = &editorMenu.resolution;
-            if (mousePos.x > 980 && mousePos.y >= value->element->position.y && mousePos.y < (value->element->position.y  + LAYER_VALUE_HEIGHT)) {
-                    editorMenu.focused = value;
-                    return;
+            if (mousePos.x > 980 && mousePos.x <= (980 + 160) && mousePos.y >= value->element->position.y && mousePos.y < (value->element->position.y  + LAYER_VALUE_HEIGHT)) {
+                slog("setting held focus");    
+                editorMenu.focused = value;
+                editorMenu.mode = 1;
             }
 
             for (i = 0; i < editorMenu.numLayers; i++) {
@@ -190,9 +251,10 @@ void editor_update(float deltaTime) {
                 if (!container || !container->expanded) continue;
                 for (j = 0; j < NUM_NOISE_LAYER_VALUES; j++) {
                     value = &container->values[j];
-                    if (mousePos.x > 980 && mousePos.y >= value->element->position.y && mousePos.y < (value->element->position.y  + LAYER_VALUE_HEIGHT)) {
-                            editorMenu.focused = value;
-                            return;
+                    if (mousePos.x > 980 && mousePos.x <= (980 + 160) && mousePos.y >= value->element->position.y && mousePos.y < (value->element->position.y  + LAYER_VALUE_HEIGHT)) {
+                        slog("setting held focus");    
+                        editorMenu.focused = value;
+                        editorMenu.mode = 1;
                     }
                 }
             }
@@ -212,12 +274,49 @@ void editor_update(float deltaTime) {
                     editorMenu.focused->updateData(editorMenu.focused->type, editorMenu.focused->data, &dataBool);
                 }
 
+                if (editorMenu.focused->type == Int) {
+                    sprintf(editorMenu.focusedVal, "%d", *((int*) editorMenu.focused->data));
+                } else if (editorMenu.focused->type == Float) {
+                    sprintf(editorMenu.focusedVal, "%f", *((float*) editorMenu.focused->data));
+                } else if (editorMenu.focused->type == Boolean) {
+                    sprintf(editorMenu.focusedVal, "%d", *((char*) editorMenu.focused->data));
+                }
                 editorMenu.dirty = 1;
             }
 
         }
-    } else if (editorMenu.focused) {
+    }
+    
+    if (editorMenu.focused && editorMenu.mode == 0) {
+        if (gfc_input_key_pressed("1")) {
+            sprintf(editorMenu.focusedVal, "%s1", editorMenu.focusedVal);
+        } else if (gfc_input_key_pressed("2")) {
+            sprintf(editorMenu.focusedVal, "%s2", editorMenu.focusedVal);
+        } else if (gfc_input_key_pressed("3")) {
+            sprintf(editorMenu.focusedVal, "%s3", editorMenu.focusedVal);
+        } else if (gfc_input_key_pressed("4")) {
+            sprintf(editorMenu.focusedVal, "%s4", editorMenu.focusedVal);
+        } else if (gfc_input_key_pressed("5")) {
+            sprintf(editorMenu.focusedVal, "%s5", editorMenu.focusedVal);
+        } else if (gfc_input_key_pressed("6")) {
+            sprintf(editorMenu.focusedVal, "%s6", editorMenu.focusedVal);
+        } else if (gfc_input_key_pressed("7")) {
+            sprintf(editorMenu.focusedVal, "%s7", editorMenu.focusedVal);
+        } else if (gfc_input_key_pressed("8")) {
+            sprintf(editorMenu.focusedVal, "%s8", editorMenu.focusedVal);
+        } else if (gfc_input_key_pressed("9")) {
+            sprintf(editorMenu.focusedVal, "%s9", editorMenu.focusedVal);
+        } else if (gfc_input_key_pressed("0")) {
+            sprintf(editorMenu.focusedVal, "%s0", editorMenu.focusedVal);
+        } else if (gfc_input_key_pressed(".")) {
+            sprintf(editorMenu.focusedVal, "%s.", editorMenu.focusedVal);
+        }
+    }
+
+    if (gf2d_mouse_button_released(0) && editorMenu.focused && editorMenu.mode == 1) {
+        slog("resetting held");
         editorMenu.focused = NULL;
+        editorMenu.focusedVal[0] = '\0';
     }
 }
 
@@ -253,7 +352,6 @@ void editor_populate_layers(ShapeSettings* settings) {
 }
 
 void editor_open(ShapeSettings* settings, Mesh **planet) {
-    int i;
     if (!settings) return;
 
     editorMenu.settings = settings;
@@ -269,6 +367,10 @@ void editor_open(ShapeSettings* settings, Mesh **planet) {
 
     editor_create_value(&editorMenu.radius, Float, INT_MAX, INT_MAX, 1, &settings->radius, "Radius", NULL);
     editor_create_value(&editorMenu.resolution, Int, INT_MAX, INT_MAX, 1, &settings->resolution, "Resolution", NULL);
+
+    editorMenu.focused = NULL;
+    editorMenu.mode = -1;
+    editorMenu.focusedVal[0] = '\0';
 
     *planet = generate_celestial_body(settings);
     ui_open_menu(editorMenu.menu);
