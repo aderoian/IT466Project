@@ -7,6 +7,7 @@
 #include "entity.h"
 
 struct SolarSystem_s;
+struct ShapeSettings_S;
 
 typedef struct World_s {
     struct SolarSystem_s* solarSystem;
@@ -28,7 +29,7 @@ typedef struct CelestialBody_s {
     char texture[50];
     GFC_Vector2D pos;
     float mass;
-    float radius;
+    struct ShapeSettings_S *settings;
 } CelestialBody;
 
 typedef struct SolarSystem_s {

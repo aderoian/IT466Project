@@ -1,9 +1,15 @@
 #include "simple_logger.h"
+#include "simple_json.h"
 #include "gf3d_obj_load.h"
 
 #include "celestial_generator.h"
 
 #define clamp_01(n) ((n) > 1 ? 1 : ((n) < 0 ? 0 : (n)))
+
+typedef struct ShapeSettingsManager_S {
+    ShapeSettings* settings;
+    Uint32 numSettings;
+} ShapeSettingsManager;
 
 float evaluate_noise(const Noise* noise, const ShapeSettings* settings, GFC_Vector3D point);
 
@@ -211,4 +217,106 @@ void create_simple_noise_settings(NoiseSettings* settings) {
     settings->baseRoughness = 1;
     settings->roughness = 2;
     settings->persistence = 0.5f;
+}
+
+ShapeSettings* shape_settings_from_json(SJson *json) {
+    ShapeSettings* settings;
+    NoiseLayer* noiseLayer;
+    SJson * layers, *layer, *centerVal, *centerCoord;
+    int layerCount = 0, i;
+    if (!json) return NULL;
+    settings = gfc_allocate_array(sizeof(ShapeSettings), 1);
+    if (!settings) return NULL;
+
+    sj_object_get_value_as_float(json, "radius", &settings->radius);
+    sj_object_get_value_as_int(json, "resolution", &settings->resolution);
+    layers = sj_object_get_value(json, "layers");
+    layerCount = sj_array_get_count(layers);
+
+    settings->noiseLayers = layerCount ? gfc_list_new_size(layerCount) : NULL;
+    for (i = 0; i < layerCount; i++) {
+        layer = sj_array_get_nth(layers, i);
+        if (!layer) continue;
+
+        noiseLayer = gfc_allocate_array(sizeof(NoiseLayer), 1);
+        sj_object_get_value_as_uint8(layer, "enabled", &noiseLayer->enabled);
+        sj_object_get_value_as_uint8(layer, "firstIsMask", &noiseLayer->firstIsMask);
+        sj_object_get_value_as_int(layer, "noiseType", &noiseLayer->settings.type);
+        sj_object_get_value_as_float(layer, "strenth", &noiseLayer->settings.strength);
+        sj_object_get_value_as_int(layer, "numLayers", &noiseLayer->settings.numLayers);
+        sj_object_get_value_as_float(layer, "baseRoughness", &noiseLayer->settings.baseRoughness);
+        sj_object_get_value_as_float(layer, "roughness", &noiseLayer->settings.roughness);
+        sj_object_get_value_as_float(layer, "persistence", &noiseLayer->settings.persistence);
+        sj_object_get_value_as_float(layer, "minValue", &noiseLayer->settings.minValue);
+        sj_object_get_value_as_float(layer, "weightMultiplier", &noiseLayer->settings.weightMultiplier);
+
+        centerVal = sj_object_get_value(layer, "center");
+        centerCoord = sj_array_get_nth(centerVal, 0);
+        sj_get_float_value(centerCoord, &noiseLayer->settings.center.x);
+        centerCoord = sj_array_get_nth(centerVal, 1);
+        sj_get_float_value(centerCoord, &noiseLayer->settings.center.y);
+        centerCoord = sj_array_get_nth(centerVal, 2);
+        sj_get_float_value(centerCoord, &noiseLayer->settings.center.z);
+
+        gfc_list_append(settings->noiseLayers, noiseLayer);
+    }
+
+    return settings;
+}
+
+SJson* shape_settings_to_json(const ShapeSettings* settings) {
+    SJson *json, *value, *sLayers, *sLayer, *centerVal;
+    int i;
+    NoiseLayer *layer;
+    if (!settings) return NULL;
+
+    json = sj_object_new();
+
+    value = sj_new_float(settings->radius);
+    sj_object_insert(json, "radius", value);
+    value = sj_new_int(settings->resolution);
+    sj_object_insert(json, "resolution", value);
+
+    sLayers = sj_array_new();
+    for (i = 0; i < gfc_list_count(settings->noiseLayers); i++) {
+        layer = gfc_list_nth(settings->noiseLayers, i);
+        if (!layer) continue;
+
+        sLayer = sj_object_new();
+        value = sj_new_int(layer->enabled);
+        sj_object_insert(sLayer, "enabled", value);
+        value = sj_new_int(layer->firstIsMask);
+        sj_object_insert(sLayer, "firstIsMask", value);
+        value = sj_new_int(layer->settings.type);
+        sj_object_insert(sLayer, "noiseType", value);
+        value = sj_new_float(layer->settings.strength);
+        sj_object_insert(sLayer, "strenth", value);
+        value = sj_new_int(layer->settings.numLayers);
+        sj_object_insert(sLayer, "numLayers", value);
+        value = sj_new_float(layer->settings.baseRoughness);
+        sj_object_insert(sLayer, "baseRoughness", value);
+        value = sj_new_float(layer->settings.roughness);
+        sj_object_insert(sLayer, "roughness", value);
+        value = sj_new_float(layer->settings.persistence);
+        sj_object_insert(sLayer, "persistence", value);
+        value = sj_new_float(layer->settings.minValue);
+        sj_object_insert(sLayer, "minValue", value);
+        value = sj_new_float(layer->settings.weightMultiplier);
+        sj_object_insert(sLayer, "weightMultiplier", value);
+
+        centerVal = sj_array_new();
+        value = sj_new_float(layer->settings.center.x);
+        sj_array_append(centerVal, value);
+        value = sj_new_float(layer->settings.center.y);
+        sj_array_append(centerVal, value);
+        value = sj_new_float(layer->settings.center.z);
+        sj_array_append(centerVal, value);
+        sj_object_insert(sLayer, "center", centerVal);
+
+        sj_array_append(sLayers, sLayer);
+    }
+
+    sj_object_insert(json, "layers", sLayers);
+
+    return json;
 }

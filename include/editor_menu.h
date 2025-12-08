@@ -39,6 +39,7 @@ NoiseLayerContainer* editor_create_layer(NoiseLayer* layer);
 
 void editor_create_value(NoiseValue* val, InputType type, int min, int max, float step, void *data, char *name, void (*updateData) (InputType type, void *dest, void *src));
 
+void editor_save(ShapeSettings *settings);
 
 
 #endif // __EDITOR_MENU_H__

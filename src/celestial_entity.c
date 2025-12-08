@@ -4,6 +4,8 @@
 #include "gf3d_texture.h"
 #include "gf3d_mesh.h"
 
+#include "celestial_generator.h"
+
 #include "celestial_entity.h"
 
 #define DISTANCE_SCALE_FACTOR 120
@@ -12,15 +14,17 @@
 Entity* spawn_celestial_entity(CelestialBody* body) {
     Entity* self;
     if (!body) return NULL;
+    if (!body->settings) return NULL;
 
     self = entity_new();
     strcpy(self->name, "celestial");
-    self->mesh = gf3d_mesh_load("models/primitives/sphere.obj");
+    self->mesh = generate_celestial_body(body->settings);
+    if (!self->mesh) return NULL;
     self->texture = gf3d_texture_load(body->texture);
     self->color = GFC_COLOR_WHITE;
     self->position = gfc_vector3d(body->pos.x * DISTANCE_SCALE_FACTOR, body->pos.y * DISTANCE_SCALE_FACTOR, 0);
     self->rotation = quaternion_create(0, 0, 0, 1);
-    self->scale = gfc_vector3d(body->radius * 2 * BODY_SCALE_FACTOR, body->radius * 2 * BODY_SCALE_FACTOR, body->radius * 2 * BODY_SCALE_FACTOR);
+    self->scale = gfc_vector3d(1, 1, 1);//gfc_vector3d(body->settings->radius * 2 * BODY_SCALE_FACTOR, body->radius * 2 * BODY_SCALE_FACTOR, body->radius * 2 * BODY_SCALE_FACTOR);
     body->entity = self;
 
     self->physicsBody = physics_body_create();
@@ -29,7 +33,7 @@ Entity* spawn_celestial_entity(CelestialBody* body) {
     self->physicsBody->invMass = 0; // Planets become "static"
     self->physicsBody->owner = self;
     self->physicsBody->shape.type = FLAG_SPHERE;
-    self->physicsBody->shape.Shape.sphere.w = body->radius * 2 * BODY_SCALE_FACTOR;
+    self->physicsBody->shape.Shape.sphere.w = body->settings->radius;
     return self;
 }
 

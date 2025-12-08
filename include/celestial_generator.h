@@ -44,4 +44,7 @@ void free_shape_settings(ShapeSettings* settings);
 NoiseLayer* new_noise_layer();
 void create_simple_noise_settings(NoiseSettings* settings);
 
+ShapeSettings* shape_settings_from_json(SJson *json);
+SJson* shape_settings_to_json(const ShapeSettings* settings);
+
 #endif // __CELESTIAL_H__

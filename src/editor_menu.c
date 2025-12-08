@@ -26,6 +26,7 @@ typedef struct EditorMenuManager_S {
     ShapeSettings* settings;
     UIElement* menu;
     UIElement* addButton;
+    UIElement* saveButton;
 
     // Focus management for input fields
     NoiseValue* focused;
@@ -100,7 +101,11 @@ void editor_draw() {
     pos = editorMenu.menu->position;
     gf2d_sprite_draw_image(editorMenu.menu->sprite, pos);
 
-    pos.y -= editorMenu.offset;
+    pos.y -= editorMenu.offset + 9;
+
+    editorMenu.saveButton->position.y = pos.y;
+    gf2d_sprite_draw_image(editorMenu.saveButton->sprite, editorMenu.saveButton->position);
+    pos.y += 50;
 
     editor_draw_layer_value(&editorMenu.radius, &pos);
     editor_draw_layer_value(&editorMenu.resolution, &pos);
@@ -112,7 +117,8 @@ void editor_draw() {
         editor_draw_layer_container(container, &pos, i);
     }
 
-    gf2d_sprite_draw_image(editorMenu.addButton->sprite, pos);
+    editorMenu.addButton->position.y = pos.y;
+    gf2d_sprite_draw_image(editorMenu.addButton->sprite, editorMenu.addButton->position);
 }
 
 void editor_click() {
@@ -131,12 +137,14 @@ void editor_click() {
         value = NULL;
     }
 
-    value = &editorMenu.resolution;
-    if (!(mousePos.y >= value->element->position.y && mousePos.y < (value->element->position.y  + LAYER_VALUE_HEIGHT))) {
-        value = NULL;
+    if (!value) {
+        value = &editorMenu.resolution;
+        if (!(mousePos.y >= value->element->position.y && mousePos.y < (value->element->position.y  + LAYER_VALUE_HEIGHT))) {
+            value = NULL;
+        }
     }
 
-    for (i = 0; i < editorMenu.numLayers; i++) {
+    for (i = 0; i < editorMenu.numLayers && !value; i++) {
         NoiseLayerContainer* container = editorMenu.layerContainers[i];
         if (!container) continue;
 
@@ -148,7 +156,6 @@ void editor_click() {
                 if (!(mousePos.y >= value->element->position.y && mousePos.y < (value->element->position.y  + LAYER_VALUE_HEIGHT))) {
                     value = NULL;
                 } else {
-                    slog("value %d clicked", j);
                     break;
                 }
             }
@@ -157,7 +164,6 @@ void editor_click() {
         layersHeight += layer_height(container->expanded);
     }
 
-    slog("focused %p, mode %d, value %p", editorMenu.focused, editorMenu.mode, value);
     if (editorMenu.focused && editorMenu.mode == 0 && (!value || editorMenu.focused != value)) {
         if (editorMenu.focused->type == Int) {
             dataInt = atoi(editorMenu.focusedVal);
@@ -172,29 +178,25 @@ void editor_click() {
 
         editorMenu.focused = NULL;
         editorMenu.focusedVal[0] = '\0';
-        slog("unfocused");
         editorMenu.dirty = 1;
         return;
     } else if (!editorMenu.focused && value) {
-        slog("focused");
         editorMenu.focused = value;
         editorMenu.mode = 0;
-        // if (editorMenu.focused->type == Int) {
-        //     sprintf(editorMenu.focusedVal, "%d", *((int*) editorMenu.focused->data));
-        // } else if (editorMenu.focused->type == Float) {
-        //     sprintf(editorMenu.focusedVal, "%f", *((float*) editorMenu.focused->data));
-        // } else if (editorMenu.focused->type == Boolean) {
-        //     sprintf(editorMenu.focusedVal, "%d", *((char*) editorMenu.focused->data));
-        // }
         return;
     }
 
-    if (mousePos.y >= (editorMenu.addButton->position.y + layersHeight + HEADER_VALUES_HEIGHT) && mousePos.y < (editorMenu.addButton->position.y + 23 + layersHeight + HEADER_VALUES_HEIGHT)) {
+    if (mousePos.y >= (editorMenu.addButton->position.y) && mousePos.y < (editorMenu.addButton->position.y + 23)) {
         
         layer = new_noise_layer();
         gfc_list_append(editorMenu.settings->noiseLayers, layer);
         editor_populate_layers(editorMenu.settings);
         editorMenu.dirty = 1;
+    }
+
+    if (mousePos.y > editorMenu.saveButton->position.y && mousePos.y < (editorMenu.saveButton->position.y + 35) &&
+        mousePos.x > 1072 && mousePos.x < 1187) {
+        editor_save(editorMenu.settings);
     }
 }
 
@@ -234,14 +236,12 @@ void editor_update(float deltaTime) {
         if (!editorMenu.focused) {
             value = &editorMenu.radius;
             if (mousePos.x > 980 && mousePos.x <= (980 + 160) && mousePos.y >= value->element->position.y && mousePos.y < (value->element->position.y  + LAYER_VALUE_HEIGHT)) {
-                slog("setting held focus");
                 editorMenu.focused = value;
                 editorMenu.mode = 1;
             }
 
             value = &editorMenu.resolution;
             if (mousePos.x > 980 && mousePos.x <= (980 + 160) && mousePos.y >= value->element->position.y && mousePos.y < (value->element->position.y  + LAYER_VALUE_HEIGHT)) {
-                slog("setting held focus");    
                 editorMenu.focused = value;
                 editorMenu.mode = 1;
             }
@@ -252,7 +252,6 @@ void editor_update(float deltaTime) {
                 for (j = 0; j < NUM_NOISE_LAYER_VALUES; j++) {
                     value = &container->values[j];
                     if (mousePos.x > 980 && mousePos.x <= (980 + 160) && mousePos.y >= value->element->position.y && mousePos.y < (value->element->position.y  + LAYER_VALUE_HEIGHT)) {
-                        slog("setting held focus");    
                         editorMenu.focused = value;
                         editorMenu.mode = 1;
                     }
@@ -314,7 +313,6 @@ void editor_update(float deltaTime) {
     }
 
     if (gf2d_mouse_button_released(0) && editorMenu.focused && editorMenu.mode == 1) {
-        slog("resetting held");
         editorMenu.focused = NULL;
         editorMenu.focusedVal[0] = '\0';
     }
@@ -358,7 +356,10 @@ void editor_open(ShapeSettings* settings, Mesh **planet) {
     editor_populate_layers(editorMenu.settings);
 
     editorMenu.menu = ui_element_create_simple("images/ui/editor/editor_background.png", gfc_vector2d(980, 0));
+    editorMenu.menu->localBounding.x -= 141;
+    editorMenu.menu->localBounding.x += 141;
     editorMenu.addButton = ui_element_create_simple("images/ui/editor/editor_layer_add.png", gfc_vector2d(984, 0));
+    editorMenu.saveButton = ui_element_create_simple("images/ui/editor/editor_save.png", gfc_vector2d(1072, 18));
     editorMenu.menu->draw = editor_draw;
     editorMenu.menu->onClick = editor_click;
     editorMenu.menu->update = editor_update;
@@ -408,6 +409,16 @@ NoiseLayerContainer* editor_create_layer(NoiseLayer* layer) {
     editor_create_value(&container->values[12], Float, INT_MAX, INT_MAX, 1, &layer->settings.weightMultiplier, "Weight Multiplier", NULL);
 
     return container;
+}
+
+void editor_save(ShapeSettings *settings) {
+    SJson *json;
+    if (!settings) return;
+    json = shape_settings_to_json(settings);
+    if (!json) return;
+
+    slog("saving body");
+    sj_save(json, "shape_export.json");
 }
 
 void default_update_data(InputType type, void *dest, void *src) {

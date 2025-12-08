@@ -10,6 +10,7 @@
 
 #include "player.h"
 #include "celestial_entity.h"
+#include "celestial_generator.h"
 #include "world.h"
 
 #define NUM_ASTEROIDS 400
@@ -101,7 +102,10 @@ void world_spawn_solarSystem() {
         body = ss->celestialBodies[i];
         if (!body) continue;
         ent = spawn_celestial_entity(body);
-        if (!ent) continue;
+        if (!ent) {
+            slog("Failed to spawn celestial entity.");
+            continue;
+        }
         body->entity = ent;
     }
 }
@@ -305,6 +309,7 @@ void world_generate_solarSystem(SolarSystem* ss) {
     int i, j, numPlanets, numMoons, totalNumMoons = 0;
     float totalRadiusDistance = 45, angle, dx, dy, totalMoonRadiusDistance = 0;
     CelestialBody *body, *moon;
+    SJson *shapeData;
     GFC_List* bodies;
     if (!ss) return;
 
@@ -317,10 +322,13 @@ void world_generate_solarSystem(SolarSystem* ss) {
         body->type = PLANET;
         strcpy(body->name, "celestial");
         world_get_planet_texture(body->texture, gfc_random_int(13));
+        //strcpy(body->texture, "models/primitives/flatwhite.png");
         //body->mass = gfc_random() * 10;
-        body->radius = gfc_random() * 10 + 5;
         body->mass = 10.f;
-        body->radius = 10;
+        shapeData = sj_load("defs/shapes/default.json");
+        body->settings = shape_settings_from_json(shapeData);
+        if (!body->settings) slog ("Failed to load shape settings.");
+        free(shapeData);
 
         //totalRadiusDistance += (gfc_random() * 15) + 20;
         totalRadiusDistance += 30;
@@ -337,9 +345,12 @@ void world_generate_solarSystem(SolarSystem* ss) {
             moon->type = MOON;
             strcpy(moon->name, "celestial");
             strcpy(moon->texture, "images/celestial/moon.jpg");
+            //strcpy(body->texture, "models/primitives/flatwhite.png");
             moon->mass = gfc_random() * 4 + 1;
             //moon->radius = gfc_random() * 15;
-            moon->radius = 2.5f;
+            shapeData = sj_load("defs/shapes/default.json");
+            moon->settings = shape_settings_from_json(shapeData);
+            free(shapeData);
 
             //totalMoonRadiusDistance += (gfc_random() * 4) + 1;
             totalMoonRadiusDistance += 15.f;
