@@ -10,9 +10,55 @@
                         "resource": "Iron",
                         "amount": 5
                     },
+                    "productionCost": {
+                        "resource": "Iron",
+                        "amount": 1
+                    }
+                    "duration": "100.0"
+                },
+                {
+                    "production": {
+                        "resource": "Iron",
+                        "amount": 5
+                    },
+                    "productionCost": {
+                        "resource": "Iron",
+                        "amount": 1
+                    }
                     "duration": "100.0"
                 }
-            ]
+            ],
+            "buildCost": []
+        },
+        {
+            "name": "Quarry",
+            "model": "models/primitives/cube.obj",
+            "texture": "images/default.png",
+            "products": [
+                {
+                    "production": {
+                        "resource": "Iron",
+                        "amount": 5
+                    },
+                    "productionCost": {
+                        "resource": "Iron",
+                        "amount": 5
+                    }
+                    "duration": "100.0"
+                },
+                {
+                    "production": {
+                        "resource": "Iron",
+                        "amount": 5
+                    },
+                    "productionCost": {
+                        "resource": "Iron",
+                        "amount": 5
+                    }
+                    "duration": "100.0"
+                }
+            ],
+            "buildCost": []
         }
     ]
 }

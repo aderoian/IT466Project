@@ -13,6 +13,7 @@ struct ResourceAmount_s;
 struct Resource_s;
 struct Civilization_s;
 struct CivilMission_s;
+struct Building_S;
 
 typedef struct {
     GFC_Vector3D rotVelocity;
@@ -54,5 +55,6 @@ int player_try_take_resource(Entity* player, const struct ResourceAmount_s* resA
 int player_try_give_resource(Entity* player, const struct ResourceAmount_s* resAmount);
 
 int player_try_init_build(Entity* player);
+int player_try_build(Entity* player, const struct Building_S *building, Entity *planet, GFC_Vector3D pos);
 
 # endif

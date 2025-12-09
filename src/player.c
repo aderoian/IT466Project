@@ -327,7 +327,6 @@ int player_try_take_resource(Entity* player, const ResourceAmount* resAmount) {
     for (i = 0; i < playerData->invSize; i++) {
         if (playerData->inventory[i].resource == resAmount->resource) {
             playerData->inventory[i].amount -= resAmount->amount;
-            slog("Took %d of %s from player", resAmount->amount, resAmount->resource->name);
             return 1;
         }
     }
@@ -352,7 +351,6 @@ int player_try_give_resource(Entity* player, const ResourceAmount* resAmount) {
     for (i = 0; i < playerData->invSize; i++) {
         if (playerData->inventory[i].resource == resAmount->resource) {
             playerData->inventory[i].amount += resAmount->amount;
-            slog("Gave player %d of %s", resAmount->amount, resAmount->resource->name);
             return 1;
         }
     }
@@ -364,7 +362,6 @@ int player_try_init_build(Entity* player) {
     float distance;
     PhysicsBody *body;
     Entity* hitEnt;
-    Building* building;
     if (!player) return 0;
 
     quaternion_rotate_v(&forward, player->rotation, gfc_vector3d(0, 1, 0));
@@ -372,12 +369,33 @@ int player_try_init_build(Entity* player) {
     gfc_vector3d_add(offset, offset, player->position);
     if (physics_raycast_sphere(offset, forward, 1000.0f, &body, &distance, &hitPos)) {
         hitEnt = body->owner;
-        building = building_get_by_name("Quarry");
-        if (!building_spawn_entity(hitEnt, building, hitPos)) {
-            slog("failed to spawn building entity");
-        }
+        building_menu_open(hitEnt, hitPos);
         return 1;
     }
 
     return 0;
+}
+
+int player_try_build(Entity* player, const Building *building, Entity *planet, GFC_Vector3D pos) {
+    int i;
+    if (!player || !building || !planet) return 0;
+
+    slog("trying to build");
+    for (i = 0; i < building->costAmount; i++) {
+        if (!player_has_resource_of(player, building->cost[i].resource, building->cost[i].amount))
+            return 0;
+    }
+    for (i = 0; i < building->costAmount; i++) {
+        if (!player_try_take_resource(player, &building->cost[i]))
+            return 0;
+    }
+
+    slog("spawning");
+    building = building_get_by_name("Quarry");
+    if (!building_spawn_entity(planet, building, pos)) {
+        slog("failed to spawn building entity");
+        return 0; 
+    }
+
+    return 1;
 }
