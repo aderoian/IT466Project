@@ -62,4 +62,6 @@ void physics_step(float deltaTime);
 void physics_add_impulse(PhysicsBody* body, GFC_Vector3D impulse);
 void physics_add_force(PhysicsBody* body, GFC_Vector3D force);
 
+int physics_raycast_sphere(GFC_Vector3D origin, GFC_Vector3D dir, float length, PhysicsBody **hit, float* distance, GFC_Vector3D *hitPos);
+
 # endif // __PHYSICS_H__

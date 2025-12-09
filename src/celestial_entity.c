@@ -28,7 +28,7 @@ Entity* spawn_celestial_entity(CelestialBody* body) {
     body->entity = self;
 
     self->physicsBody = physics_body_create();
-    self->physicsBody->position = self->position;
+    gfc_vector3d_copy(self->physicsBody->position, self->position);
     self->physicsBody->mass = body->mass;
     self->physicsBody->invMass = 0; // Planets become "static"
     self->physicsBody->owner = self;

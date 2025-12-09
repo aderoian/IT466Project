@@ -77,6 +77,9 @@ MeshPrimitive* generate_celestial_face(const Noise* noise, const ShapeSettings* 
         }
     }
 
+    // gfc_trigfc_angle_get_plane
+    // try this?
+
     // Calculate normals
     // for (y = 1; y < resolution - 1; y++) {
     //     for (x = 1; x < resolution - 1; x++) {

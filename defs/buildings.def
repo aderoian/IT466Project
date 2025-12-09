@@ -1,0 +1,18 @@
+{
+    "buildings": [
+        {
+            "name": "Quarry",
+            "model": "models/primitives/cube.obj",
+            "texture": "models/primitives/flatwhite.png",
+            "products": [
+                {
+                    "production": {
+                        "resource": "Iron",
+                        "amount": 5
+                    },
+                    "duration": "100.0"
+                }
+            ]
+        }
+    ]
+}

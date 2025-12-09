@@ -134,7 +134,6 @@ void mission_menu_draw() {
 void mission_menu_click() {
     int i;
     UIElement* card;
-    CivilMission *mission;
     if (m_missionMenu.numPages == 0 || !m_missionMenu.pages || !m_missionMenu.pages[m_missionMenu.currPage]) return;
     for (i = 0; i < 3; i++) {
         card = m_missionMenu.pages[m_missionMenu.currPage][i];

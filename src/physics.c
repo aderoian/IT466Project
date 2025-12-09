@@ -101,7 +101,7 @@ void physics_integrate(float deltaTime) {
     int i;
     GFC_Vector3D vel;
     for (i = 0; i < body_manager.count; i++) {
-        if (body_manager.bodies[i]._inuse <= 0)continue;
+        if (body_manager.bodies[i]._inuse <= 0 || body_manager.bodies[i].invMass == 0)continue;
         gfc_vector3d_scale(vel, body_manager.bodies[i].forceAccumulator, body_manager.bodies[i].invMass);
         gfc_vector3d_scale(vel, vel, deltaTime);
         gfc_vector3d_add(body_manager.bodies[i].velocity, body_manager.bodies[i].velocity, vel);
@@ -113,7 +113,7 @@ void physics_integrate(float deltaTime) {
 void physics_sync() {
     int i;
     for (i = 0; i < body_manager.count; i++) {
-        if (body_manager.bodies[i]._inuse <= 0)continue;
+        if (body_manager.bodies[i]._inuse <= 0 || body_manager.bodies[i].invMass == 0)continue;
 
         if (!body_manager.bodies[i].owner) continue;
         body_manager.bodies[i].owner->position = body_manager.bodies[i].position;
@@ -362,4 +362,45 @@ void physics_add_impulse(PhysicsBody* body, GFC_Vector3D impulse) {
 void physics_add_force(PhysicsBody* body, GFC_Vector3D force) {
     if (!body) return;
     gfc_vector3d_add(body->forceAccumulator, body->forceAccumulator, force);
+}
+
+int physics_raycast_sphere(GFC_Vector3D origin, GFC_Vector3D dir, float length, PhysicsBody **hit, float* distance, GFC_Vector3D *hitPos) {
+    int i;
+    PhysicsBody *body;
+
+    GFC_Vector3D L;
+    float r, originDistance, b, c, disc, sqrtD, t0, t1, t;
+
+    for (i = 0; i < body_manager.count; i++) {
+        body = &body_manager.bodies[i];
+        if (body->_inuse <= 0)continue;
+        if ((body->shape.type != FLAG_SPHERE) || (body->flags & FLAG_NOT_COLLIDABLE)) continue;
+
+        r = body->shape.Shape.sphere.w;
+        originDistance = gfc_vector3d_magnitude_between_squared(origin, body->position);
+        if (originDistance > (r + length) * (r + length)) continue;
+
+        gfc_vector3d_sub(L, origin, body->position);
+        b = gfc_vector3d_dot_product(dir, L) * 2.0f;
+        c = gfc_vector3d_dot_product(L, L) - r*r;
+        disc = b*b - 4.0f * c;
+        
+        if (disc < 0.0f) continue;
+
+        sqrtD = sqrtf(disc);
+        t0 = (-b - sqrtD) * 0.5f;
+        t1 = (-b + sqrtD) * 0.5f;
+
+        t = (t0 > 0.0f) ? t0 : ((t1 > 0.0f) ? t1 : -1.0f);
+        if (t < 0.0f) continue;
+
+        *hit = body;
+        *distance = t;
+        gfc_vector3d_clear((*hitPos));
+        gfc_vector3d_scale((*hitPos), dir, t);
+        gfc_vector3d_add((*hitPos), (*hitPos), origin);
+        return 1;
+    }
+
+    return 0;
 }

@@ -7,6 +7,7 @@
 #include "ui.h"
 #include "mission_menu.h"
 #include "inv_screen.h"
+#include "building.h"
 
 #include "player.h"
 
@@ -105,6 +106,8 @@ void player_think(Entity* ent) {
             mission_menu_open();
         } else if (gfc_input_command_pressed("open_inventory")) {
             inv_menu_open();
+        } else if (gfc_input_command_pressed("build")) {
+            player_try_init_build(ent);
         }
     }
 
@@ -353,5 +356,28 @@ int player_try_give_resource(Entity* player, const ResourceAmount* resAmount) {
             return 1;
         }
     }
+    return 0;
+}
+
+int player_try_init_build(Entity* player) {
+    GFC_Vector3D forward, hitPos, offset;
+    float distance;
+    PhysicsBody *body;
+    Entity* hitEnt;
+    Building* building;
+    if (!player) return 0;
+
+    quaternion_rotate_v(&forward, player->rotation, gfc_vector3d(0, 1, 0));
+    gfc_vector3d_scale(offset, forward, 50.0f);
+    gfc_vector3d_add(offset, offset, player->position);
+    if (physics_raycast_sphere(offset, forward, 1000.0f, &body, &distance, &hitPos)) {
+        hitEnt = body->owner;
+        building = building_get_by_name("Quarry");
+        if (!building_spawn_entity(hitEnt, building, hitPos)) {
+            slog("failed to spawn building entity");
+        }
+        return 1;
+    }
+
     return 0;
 }

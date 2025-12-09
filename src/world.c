@@ -50,30 +50,30 @@ void world_update() {
     if (!player || !world.solarSystem) return;
 
     // Remove stale asteroids (far from player)
-    for (i = 0; i < NUM_ASTEROIDS && world.numAsteroids > 0; i++) {
-        body = (Entity*) gfc_list_get_nth(world.asteroids, i);
-        if (!body) continue;
+    // for (i = 0; i < NUM_ASTEROIDS && world.numAsteroids > 0; i++) {
+    //     body = (Entity*) gfc_list_get_nth(world.asteroids, i);
+    //     if (!body) continue;
 
-        if (gfc_vector3d_magnitude_between_squared(body->position, player->position) < MAX_ASTEROID_DISTANCE * MAX_ASTEROID_DISTANCE) {
-            if (body->_inuse == 0) gfc_list_set_nth(world.asteroids, i, NULL);
-            continue;
-        }
+    //     if (gfc_vector3d_magnitude_between_squared(body->position, player->position) < MAX_ASTEROID_DISTANCE * MAX_ASTEROID_DISTANCE) {
+    //         if (body->_inuse == 0) gfc_list_set_nth(world.asteroids, i, NULL);
+    //         continue;
+    //     }
 
-        if (body) entity_free(body);
-        gfc_list_set_nth(world.asteroids, i, NULL);
-        world.numAsteroids--;
-    }
+    //     if (body) entity_free(body);
+    //     gfc_list_set_nth(world.asteroids, i, NULL);
+    //     world.numAsteroids--;
+    // }
 
-    // Create new asteroids to fill to cap
-    for (i = 0; i < NUM_ASTEROIDS && world.numAsteroids < NUM_ASTEROIDS; i++) {
-        body = (Entity*) gfc_list_get_nth(world.asteroids, i);
-        if (body) continue;
+    // // Create new asteroids to fill to cap
+    // for (i = 0; i < NUM_ASTEROIDS && world.numAsteroids < NUM_ASTEROIDS; i++) {
+    //     body = (Entity*) gfc_list_get_nth(world.asteroids, i);
+    //     if (body) continue;
 
-        // Create asteroid
-        body = world_create_asteroid(player->position, world.solarSystem);
-        gfc_list_set_nth(world.asteroids, i, body);
-        world.numAsteroids++;
-    }
+    //     // Create asteroid
+    //     body = world_create_asteroid(player->position, world.solarSystem);
+    //     gfc_list_set_nth(world.asteroids, i, body);
+    //     world.numAsteroids++;
+    // }
 }
 
 void world_load_universe(Universe* universe) {

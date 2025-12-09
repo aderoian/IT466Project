@@ -53,4 +53,6 @@ int player_has_resource_of(Entity* player, const struct Resource_s* resource, in
 int player_try_take_resource(Entity* player, const struct ResourceAmount_s* resAmount);
 int player_try_give_resource(Entity* player, const struct ResourceAmount_s* resAmount);
 
+int player_try_init_build(Entity* player);
+
 # endif

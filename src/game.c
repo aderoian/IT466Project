@@ -36,10 +36,12 @@
 #include "def.h"
 #include "resource.h"
 #include "civilization.h"
+#include "building.h"
 #include "mission_menu.h"
 #include "celestial_generator.h"
 #include "celestial_entity.h"
 #include "editor_menu.h"
+#include "inv_screen.h"
 
 extern int __DEBUG;
 
@@ -77,6 +79,7 @@ void runGame() {
     def_load_directory("defs"); // Load our default definitions
 
     resource_init();
+    building_init();
     civilization_init();
 
     ui_init();
