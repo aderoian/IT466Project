@@ -58,10 +58,10 @@ static int Grad3[][3] =
 
 void noise_randomize(Noise* noise, int seed);
 
-const Noise* noise_new() {
+Noise* noise_new() {
     return noise_new_seed(0);
 }
-const Noise* noise_new_seed(int seed) {
+Noise* noise_new_seed(int seed) {
     Noise* noise = gfc_allocate_array(sizeof(Noise), 1);
     noise_randomize(noise, seed);
     return noise;

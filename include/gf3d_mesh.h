@@ -37,10 +37,24 @@ typedef struct
 
 typedef struct
 {
+    GFC_Matrix4     model;
+    GFC_Matrix4     view;
+    GFC_Matrix4     proj;
+    GFC_Vector3D    planetCenter;
+}PlanetUBO;
+
+typedef struct
+{
     GFC_Vector3D vertex;
     GFC_Vector3D normal;
     GFC_Vector2D texel;
 }Vertex;
+
+typedef struct
+{
+    GFC_Vector3D vertex;
+    GFC_Vector3D normal;
+}PlanetVertex;
 
 typedef struct
 {
@@ -98,6 +112,8 @@ void gf3d_mesh_draw(Mesh *mesh,GFC_Matrix4 modelMat,GFC_Color mod,Texture *textu
  */
 void gf3d_mesh_skybox_draw(Mesh *mesh,GFC_Matrix4 modelMat,GFC_Color mod,Texture *texture);
 
+void gf3d_mesh_planet_draw(Mesh *mesh,GFC_Matrix4 modelMat,GFC_Color mod,Texture *texture, GFC_Vector3D lightPos, GFC_Color lightCol, GFC_Vector3D planetPos);
+
 /**
  * @brief allocate a zero initialized mesh primitive
  * @return NULL on error or the primitive
@@ -112,12 +128,14 @@ void gf3d_mesh_primitive_destroy(MeshPrimitive* prim);
  * @return a pointer to a vertex input attribute description array
  */
 VkVertexInputAttributeDescription * gf3d_mesh_get_attribute_descriptions(Uint32 *count);
+VkVertexInputAttributeDescription * gf3d_mesh_planet_get_attribute_descriptions(Uint32 *count);
 
 /**
  * @brief get the binding description for mesh based rendering
  * @return vertex input binding descriptions compatible with mesh data
  */
 VkVertexInputBindingDescription * gf3d_mesh_get_bind_description();
+VkVertexInputBindingDescription * gf3d_mesh_planet_get_bind_description();
 
 /**
  * @brief free a mesh that has been loaded from memory

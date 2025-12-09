@@ -9,6 +9,7 @@
 #include "gf3d_mesh.h"
 
 #define MESH_ATTRIBUTE_COUNT 3
+#define MESH_PLANET_ATTRIBUTE_COUNT 2
 
 typedef struct
 {
@@ -18,8 +19,11 @@ typedef struct
     VkDevice                            device;
     Pipeline                           *pipe;
     Pipeline                           *skyPipe;
+    Pipeline                           *planetPipe;
     VkVertexInputAttributeDescription   attributeDescriptions[MESH_ATTRIBUTE_COUNT];
     VkVertexInputBindingDescription     bindingDescription;
+    VkVertexInputAttributeDescription   planetAttributeDescriptions[MESH_PLANET_ATTRIBUTE_COUNT];
+    VkVertexInputBindingDescription     planetBindingDescription;
     Texture                            *defaultTexture;
 } MeshManager;
 
@@ -34,7 +38,7 @@ void gf3d_mesh_manager_close();
 void gf3d_mesh_queue_render(Mesh *mesh,Pipeline* pipe, void* uboData,Texture *texture);
 
 void gf3d_mesh_init(Uint32 mesh_max) {
-    Uint32 count = 0;
+    Uint32 count = 0, pCount = 0;
     if (mesh_max == 0)
     {
         slog("cannot intilizat sprite manager for 0 sprites");
@@ -68,6 +72,31 @@ void gf3d_mesh_init(Uint32 mesh_max) {
         sizeof(MeshUBO),
         VK_INDEX_TYPE_UINT16
     );
+
+    mesh_manager.planetPipe = gf3d_pipeline_create_from_config(
+        gf3d_vgraphics_get_default_logical_device(),
+        "config/planet_pipeline.cfg",
+        gf3d_vgraphics_get_view_extent(),
+        mesh_max,
+        &mesh_manager.bindingDescription,
+        mesh_manager.attributeDescriptions,
+        count,
+        sizeof(MeshUBO),
+        VK_INDEX_TYPE_UINT16
+    );
+
+    // gf3d_mesh_planet_get_attribute_descriptions(&pCount);
+    // mesh_manager.planetPipe = gf3d_pipeline_create_from_config(
+    //     gf3d_vgraphics_get_default_logical_device(),
+    //     "config/planet_pipeline.cfg",
+    //     gf3d_vgraphics_get_view_extent(),
+    //     mesh_max,
+    //     gf3d_mesh_planet_get_bind_description(),
+    //     gf3d_mesh_planet_get_attribute_descriptions(NULL),
+    //     pCount,
+    //     sizeof(PlanetUBO),
+    //     VK_INDEX_TYPE_UINT16
+    // );
     mesh_manager.defaultTexture = gf3d_texture_load("images/default.png");
     if(__DEBUG)slog("mesh manager initiliazed");
     atexit(gf3d_mesh_manager_close);
@@ -86,6 +115,8 @@ void gf3d_mesh_manager_close() {
         free(mesh_manager.mesh_list);
     }
     gf3d_pipeline_free(mesh_manager.pipe);
+    gf3d_pipeline_free(mesh_manager.skyPipe);
+    gf3d_pipeline_free(mesh_manager.planetPipe);
     gf3d_texture_free(mesh_manager.defaultTexture);
     memset(&mesh_manager,0,sizeof(MeshManager));
     if(__DEBUG)slog("mesh manager closed");
@@ -206,6 +237,34 @@ void gf3d_mesh_skybox_draw(Mesh *mesh,GFC_Matrix4 modelMat,GFC_Color mod,Texture
     gf3d_mesh_queue_render(mesh,mesh_manager.skyPipe,&ubo,texture);
 }
 
+void gf3d_mesh_planet_draw(Mesh *mesh,GFC_Matrix4 modelMat,GFC_Color mod,Texture *texture, GFC_Vector3D lightPos, GFC_Color lightCol, GFC_Vector3D planetPos) {
+    //PlanetUBO ubo = {0};
+    MeshUBO ubo = {0};
+    if (!mesh) {
+        if(__DEBUG) slog("Cannot draw NULL mesh");
+        return;
+    }
+
+    if (!texture) {
+        texture = mesh_manager.defaultTexture;
+    }
+
+    // gfc_matrix4_copy(ubo.model, modelMat);
+    // gf3d_vgraphics_get_view(&ubo.view);
+    // gf3d_vgraphics_get_projection_matrix(&ubo.proj);
+    // gfc_vector3d_copy(ubo.planetCenter, planetPos);
+
+    gfc_matrix4_copy(ubo.model, modelMat);
+    gf3d_vgraphics_get_view(&ubo.view);
+    gf3d_vgraphics_get_projection_matrix(&ubo.proj);
+    ubo.color = gfc_color_to_vector4f(mod);
+    ubo.camera = gfc_vector3dw(gf3d_camera_get_position(), 1.0);
+    ubo.lightPos = gfc_vector3dw(lightPos, 1.0);
+    ubo.lightColor = gfc_color_to_vector4f(lightCol);
+
+    gf3d_mesh_queue_render(mesh,mesh_manager.planetPipe,&ubo,texture);
+}
+
 void gf3d_mesh_queue_primitive(MeshPrimitive* primitive, Pipeline* pipe, void* ubo, Texture *texture) {
     if (!primitive || !ubo || !texture) {
         slog("Failed to queue mesh primitive");
@@ -254,10 +313,33 @@ VkVertexInputAttributeDescription * gf3d_mesh_get_attribute_descriptions(Uint32 
     return mesh_manager.attributeDescriptions;
 }
 
+VkVertexInputAttributeDescription * gf3d_mesh_planet_get_attribute_descriptions(Uint32 *count) {
+    mesh_manager.attributeDescriptions[0].binding = 0;
+    mesh_manager.attributeDescriptions[0].location = 0;
+    mesh_manager.attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+    mesh_manager.attributeDescriptions[0].offset = offsetof(Vertex, vertex);
+
+    mesh_manager.attributeDescriptions[1].binding = 0;
+    mesh_manager.attributeDescriptions[1].location = 1;
+    mesh_manager.attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+    mesh_manager.attributeDescriptions[1].offset = offsetof(Vertex, normal);
+
+    if(count) *count = MESH_PLANET_ATTRIBUTE_COUNT;
+    return mesh_manager.attributeDescriptions;
+}
+
 VkVertexInputBindingDescription * gf3d_mesh_get_bind_description() {
     mesh_manager.bindingDescription.binding = 0;
     mesh_manager.bindingDescription.stride = sizeof(Vertex);
     mesh_manager.bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+    return &mesh_manager.bindingDescription;
+}
+
+VkVertexInputBindingDescription * gf3d_mesh_planet_get_bind_description() {
+    mesh_manager.planetBindingDescription.binding = 0;
+    mesh_manager.planetBindingDescription.stride = sizeof(PlanetVertex);
+    mesh_manager.planetBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
     return &mesh_manager.bindingDescription;
 }

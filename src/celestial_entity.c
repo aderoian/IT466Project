@@ -100,6 +100,27 @@ Entity* spawn_asteroid(GFC_Vector3D position, float size) {
     return self;
 }
 
+void generated_celestial_entity_draw(Entity* ent, GFC_Vector3D lightPos, GFC_Color lightColor) {
+    GFC_Matrix4 modelMat = {0};
+    if (!ent) return;
+
+    gfc_matrix4_from_vectors_q(
+        modelMat,
+        ent->position,
+        ent->rotation,
+        ent->scale
+    );
+    gf3d_mesh_planet_draw(
+        ent->mesh,
+        modelMat,
+        ent->color,
+        ent->texture,
+        lightPos,
+        lightColor,
+        ent->position
+    );
+}
+
 Entity* spawn_generated_celestial_entity(Texture *texture, GFC_Vector3D scale) {
     Entity* self;
     if (!texture) return NULL;
@@ -111,6 +132,7 @@ Entity* spawn_generated_celestial_entity(Texture *texture, GFC_Vector3D scale) {
     self->position = gfc_vector3d(0, 0, 0);
     self->rotation = quaternion_create(0, 0, 0, 1);
     self->scale = scale;
+    self->draw = generated_celestial_entity_draw;
 
     return self;
 }

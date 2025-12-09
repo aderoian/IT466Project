@@ -34,8 +34,8 @@ typedef struct Noise_S {
     int _random[RandomSize * 2];
 } Noise;
 
-const Noise* noise_new();
-const Noise* noise_new_seed(int seed);
+Noise* noise_new();
+Noise* noise_new_seed(int seed);
 
 float noise_evaluate(const Noise* noise, GFC_Vector3D point);
 

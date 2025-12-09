@@ -11,15 +11,13 @@ typedef struct ShapeSettingsManager_S {
     Uint32 numSettings;
 } ShapeSettingsManager;
 
-float evaluate_noise(const Noise* noise, const ShapeSettings* settings, GFC_Vector3D point);
-
 MeshPrimitive* generate_celestial_face(const Noise* noise, const ShapeSettings* settings, GFC_Vector3D localUp) {
     ObjData* data;
     MeshPrimitive* prim;
-    int y, x, i, faceIndex, resolution;
+    int y, x, i, faceIndex, resolution, xm, xp, ym, yp;
     float elevation;
     GFC_Vector2D percent;
-    GFC_Vector3D axisA, axisB, pointOnUnitCube, tmp;
+    GFC_Vector3D axisA, axisB, pointOnUnitCube, tmp, pxm, pxp, pym, pyp, dx, dy, normal;
     if (!noise || !settings) return NULL;
 
     resolution = settings->resolution;
@@ -78,6 +76,27 @@ MeshPrimitive* generate_celestial_face(const Noise* noise, const ShapeSettings* 
             }
         }
     }
+
+    // Calculate normals
+    // for (y = 1; y < resolution - 1; y++) {
+    //     for (x = 1; x < resolution - 1; x++) {
+    //         xm = (x - 1) + y * resolution;
+    //         xp = (x + 1) + y * resolution;
+    //         ym = x + (y - 1) * resolution;
+    //         yp = x + (y + 1) * resolution;
+
+    //         pxm = data->faceVertices[xm].vertex;
+    //         pxp = data->faceVertices[xp].vertex;
+    //         pym = data->faceVertices[ym].vertex;
+    //         pyp = data->faceVertices[yp].vertex;
+
+    //         gfc_vector3d_sub(dx, pxp, pxm);
+    //         gfc_vector3d_sub(dy, pyp, pym);
+
+    //         gfc_vector3d_cross_product(&data->faceVertices[i].normal, dx, dy);
+    //         gfc_vector3d_normalize(&data->faceVertices[i].normal);
+    //     }
+    // }
     
     prim->objData = data;
     gf3d_mesh_create_vertex_buffer_from_vertices(prim);

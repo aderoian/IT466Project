@@ -24,6 +24,7 @@ typedef struct Entity_s {
     void (*think)(struct Entity_s *self);
     void (*update)(struct Entity_s *self);
     void (*free)(struct Entity_s *self);
+    void (*draw)(struct Entity_s *self, GFC_Vector3D lightPos, GFC_Color lightColor);
     void* data;
     PhysicsBody* physicsBody;
 } Entity;

@@ -44,6 +44,8 @@ void free_shape_settings(ShapeSettings* settings);
 NoiseLayer* new_noise_layer();
 void create_simple_noise_settings(NoiseSettings* settings);
 
+float evaluate_noise(const Noise* noise, const ShapeSettings* settings, GFC_Vector3D point);
+
 ShapeSettings* shape_settings_from_json(SJson *json);
 SJson* shape_settings_to_json(const ShapeSettings* settings);
 

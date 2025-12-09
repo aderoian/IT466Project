@@ -49,6 +49,7 @@ Entity* entity_new() {
         quaternion_identity(&entity_manager.entities[i].rotation);
         entity_manager.entities[i].color = GFC_COLOR_WHITE;
         entity_manager.entities[i].scale = gfc_vector3d(1, 1, 1);
+        entity_manager.entities[i].draw = entity_draw;
         entity_manager.entities[i].physicsBody = NULL;
         return &entity_manager.entities[i];
     }
@@ -100,7 +101,8 @@ void entity_draw_all(GFC_Vector3D lightPos, GFC_Color lightColor) {
     int i;
     for (i = 0; i < entity_manager.count; i++) {
         if (entity_manager.entities[i]._inuse > 0) {
-            entity_draw(&entity_manager.entities[i], lightPos, lightColor);
+            if (entity_manager.entities[i].draw)
+                entity_manager.entities[i].draw(&entity_manager.entities[i], lightPos, lightColor);
         }
     }
 }
