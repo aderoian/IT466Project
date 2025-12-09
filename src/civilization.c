@@ -226,7 +226,7 @@ void civilization_trade_with(const Civilization* civ, const CivilTransaction* tr
     if (!civ || !trade || !player) return;
 
     if (player_try_take_resource(player, &trade->take)) {
-        player_give_resource(player, &trade->give);
+        player_try_give_resource(player, &trade->give);
     }
 }
 

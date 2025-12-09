@@ -6,6 +6,7 @@
 #include "civilization.h"
 #include "ui.h"
 #include "mission_menu.h"
+#include "inv_screen.h"
 
 #include "player.h"
 
@@ -102,6 +103,8 @@ void player_think(Entity* ent) {
             civilization_mission_open(data->civilContact);
         } else if (gfc_input_command_pressed("view_missions")) {
             mission_menu_open();
+        } else if (gfc_input_command_pressed("open_inventory")) {
+            inv_menu_open();
         }
     }
 
@@ -264,21 +267,6 @@ int player_try_ftl(Entity* player, Galaxy* galaxy, SolarSystem* targetSolarSyste
     return 1;
 }
 
-int player_try_take_resource(Entity* player, const ResourceAmount* resAmount) {
-    if (!player || !resAmount) return 0;
-
-    // TODO: Add resource management
-    slog("Took %d of %s from player", resAmount->amount, resAmount->resource->name);
-    return 1;
-}
-
-void player_give_resource(Entity* player, const ResourceAmount* resAmount) {
-    if (!player || !resAmount) return;
-
-    // TODO: Add resource management
-    slog("Gave player %d of %s", resAmount->amount, resAmount->resource->name);
-}
-
 int player_start_mission(Entity* player, struct CivilMission_s *mission) {
     PlayerData* data;
     if (!player || !mission) return 0;
@@ -304,11 +292,66 @@ int player_try_end_mission(Entity* player, struct CivilMission_s *mission, Uint8
     }
 
     if (player_try_take_resource(player, &mission->trans->take)) {
-        player_give_resource(player, &mission->trans->give);
+        player_try_give_resource(player, &mission->trans->give);
         gfc_list_delete_data(data->civilMissions, mission);
         free(mission);
         return 1;
     }
 
+    return 0;
+}
+
+int player_has_resource_of(Entity* player, const Resource* resource, int amount) {
+    int i;
+    PlayerData *playerData;
+    if (!player || !player->data) return 0;
+
+    playerData = (PlayerData*) player->data;
+    for (i = 0; i < playerData->invSize; i++) {
+        if (playerData->inventory[i].resource == resource && playerData->inventory[i].amount >= amount)
+            return 1;
+    }
+    return 0;
+}
+
+int player_try_take_resource(Entity* player, const ResourceAmount* resAmount) {
+    int i;
+    PlayerData *playerData;
+    if (!player || !player->data || !resAmount) return 0;
+    if (!player_has_resource_of(player, resAmount->resource, resAmount->amount)) return 0;
+
+    playerData = (PlayerData*) player->data;
+    for (i = 0; i < playerData->invSize; i++) {
+        if (playerData->inventory[i].resource == resAmount->resource) {
+            playerData->inventory[i].amount -= resAmount->amount;
+            slog("Took %d of %s from player", resAmount->amount, resAmount->resource->name);
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int player_try_give_resource(Entity* player, const ResourceAmount* resAmount) {
+    int i;
+    PlayerData *playerData;
+    if (!player || !player->data || !resAmount) return 0;
+
+    playerData = (PlayerData*) player->data;
+    if (!player_has_resource_of(player, resAmount->resource, 0)) {
+        if (playerData->invSize == playerData->invCap) {
+            playerData->invCap *= 2;
+            playerData->inventory = realloc(playerData->inventory, sizeof(ResourceAmount) * playerData->invCap);
+        }
+
+        playerData->inventory[playerData->invSize++].resource = resAmount->resource;
+    }
+
+    for (i = 0; i < playerData->invSize; i++) {
+        if (playerData->inventory[i].resource == resAmount->resource) {
+            playerData->inventory[i].amount += resAmount->amount;
+            slog("Gave player %d of %s", resAmount->amount, resAmount->resource->name);
+            return 1;
+        }
+    }
     return 0;
 }

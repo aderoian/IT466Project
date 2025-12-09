@@ -10,6 +10,7 @@
 #include "world.h"
 
 struct ResourceAmount_s;
+struct Resource_s;
 struct Civilization_s;
 struct CivilMission_s;
 
@@ -27,6 +28,10 @@ typedef struct {
 
     const struct Civilization_s *civilContact;
     GFC_List *civilMissions;
+
+    struct ResourceAmount_s* inventory;
+    Uint32 invSize;
+    Uint32 invCap;
 } PlayerData;
 
 extern Entity* player;
@@ -40,10 +45,12 @@ int player_fire_weapon(Entity* ent, WeaponSlot* slot);
 
 int player_try_ftl(Entity* player, Galaxy* galaxy, SolarSystem* targetSolarSystem, GFC_Vector3D targetPos);
 
-int player_try_take_resource(Entity* player, const struct ResourceAmount_s* resAmount);
-void player_give_resource(Entity* player, const struct ResourceAmount_s* resAmount);
 
 int player_start_mission(Entity* player, struct CivilMission_s *mission);
 int player_try_end_mission(Entity* player, struct CivilMission_s *mission, Uint8 cancel);
+
+int player_has_resource_of(Entity* player, const struct Resource_s* resource, int amount);
+int player_try_take_resource(Entity* player, const struct ResourceAmount_s* resAmount);
+int player_try_give_resource(Entity* player, const struct ResourceAmount_s* resAmount);
 
 # endif

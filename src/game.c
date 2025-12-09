@@ -84,12 +84,16 @@ void runGame() {
     entity_init(2048);
 
     mission_menu_init();
+    inv_menu_init();
 
     cameraEntity = camera_entity_spawn(cam, NULL, 50, 10);
     //civilization_spawn(gfc_vector3d(0, 0, 0), civilization_get_by_name("Armen's Colony"));
 
     main_menu_load();
     ui_open_menu(main_menu_get());
+
+    Civilization* civ = civilization_get_by_name("Armen's Colony");
+    civilization_spawn(gfc_vector3d(0, 0, 0), civ);
 
     // main game loop
     now = SDL_GetTicks() / 1000.f;
