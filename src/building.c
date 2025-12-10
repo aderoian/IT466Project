@@ -1,7 +1,9 @@
 #include "simple_logger.h"
 #include "simple_json.h"
 
+#include "gfc_input.h"
 #include "gf2d_font.h"
+#include "gf2d_mouse.h"
 
 #include "def.h"
 #include "ui.h"
@@ -121,7 +123,7 @@ void building_entity_think(Entity* ent) {
 }
 
 Entity* building_spawn_entity(Entity* planet, const Building* building, GFC_Vector3D surfacePosition) {
-    GFC_Vector3D dir;
+    GFC_Vector3D dir, rotation;
     Entity* self;
     BuildingEntityData *data;
     if (!planet || !building) return NULL;
@@ -145,6 +147,7 @@ Entity* building_spawn_entity(Entity* planet, const Building* building, GFC_Vect
     return self;
 }
 
+void building_menu_create_pages(BuildingMenu* menu, const Building* buildings, Uint32 count);
 void building_menu_update(float deltaTime);
 void building_menu_draw();
 void building_menu_click();

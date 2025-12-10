@@ -1,5 +1,7 @@
 #include "simple_logger.h"
 #include "simple_json.h"
+
+#include "gfc_primitives.h"
 #include "gf3d_obj_load.h"
 
 #include "celestial_generator.h"
@@ -18,6 +20,9 @@ MeshPrimitive* generate_celestial_face(const Noise* noise, const ShapeSettings* 
     float elevation;
     GFC_Vector2D percent;
     GFC_Vector3D axisA, axisB, pointOnUnitCube, tmp, pxm, pxp, pym, pyp, dx, dy, normal;
+    GFC_Triangle3D faceTri;
+    Face* face;
+    Vertex* vert;
     if (!noise || !settings) return NULL;
 
     resolution = settings->resolution;
@@ -77,8 +82,26 @@ MeshPrimitive* generate_celestial_face(const Noise* noise, const ShapeSettings* 
         }
     }
 
-    // gfc_trigfc_angle_get_plane
+    //gfc_trigfc_angle_get_plane
     // try this?
+
+    for (i = 0; i < data->face_count; i++) {
+        face = &data->outFace[i];
+        faceTri.a = data->faceVertices[face->verts[0]].vertex;
+        faceTri.b = data->faceVertices[face->verts[1]].vertex;
+        faceTri.c = data->faceVertices[face->verts[2]].vertex;
+
+        normal = gfc_trigfc_angle_get_normal(faceTri);
+        for (x = 0; x < 3; x++) {
+            vert = &data->faceVertices[face->verts[x]];
+            if (gfc_vector3d_is_zero(vert->normal)) {
+                gfc_vector3d_copy(vert->normal, normal);
+            } else {
+                gfc_vector3d_add(vert->normal, vert->normal, normal);
+                gfc_vector3d_scale(vert->normal, vert->normal, 0.5);
+            }
+        }
+    }
 
     // Calculate normals
     // for (y = 1; y < resolution - 1; y++) {

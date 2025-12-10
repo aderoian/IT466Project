@@ -120,7 +120,7 @@ void quaternion_from_axis_angle(Quaternion* dest, GFC_Vector3D axis, float a) {
 
 void quaternion_from_euler_angles(Quaternion* dest, float x, float y, float z) {
     Quaternion yaw, pitch, roll;
-    quaternion_from_axis_angle(&pitch, gfc_vector3d(1, 0, 1), x);
+    quaternion_from_axis_angle(&pitch, gfc_vector3d(1, 0, 0), x);
     quaternion_from_axis_angle(&roll, gfc_vector3d(0, 1, 0), y);
     quaternion_from_axis_angle(&yaw, gfc_vector3d(0, 0, 1), z);
     *dest = yaw;
