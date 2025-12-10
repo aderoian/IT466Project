@@ -73,30 +73,30 @@ void gf3d_mesh_init(Uint32 mesh_max) {
         VK_INDEX_TYPE_UINT16
     );
 
-    mesh_manager.planetPipe = gf3d_pipeline_create_from_config(
-        gf3d_vgraphics_get_default_logical_device(),
-        "config/planet_pipeline.cfg",
-        gf3d_vgraphics_get_view_extent(),
-        mesh_max,
-        &mesh_manager.bindingDescription,
-        mesh_manager.attributeDescriptions,
-        count,
-        sizeof(MeshUBO),
-        VK_INDEX_TYPE_UINT16
-    );
-
-    // gf3d_mesh_planet_get_attribute_descriptions(&pCount);
     // mesh_manager.planetPipe = gf3d_pipeline_create_from_config(
     //     gf3d_vgraphics_get_default_logical_device(),
     //     "config/planet_pipeline.cfg",
     //     gf3d_vgraphics_get_view_extent(),
     //     mesh_max,
-    //     gf3d_mesh_planet_get_bind_description(),
-    //     gf3d_mesh_planet_get_attribute_descriptions(NULL),
-    //     pCount,
-    //     sizeof(PlanetUBO),
+    //     &mesh_manager.bindingDescription,
+    //     mesh_manager.attributeDescriptions,
+    //     count,
+    //     sizeof(MeshUBO),
     //     VK_INDEX_TYPE_UINT16
     // );
+
+    gf3d_mesh_planet_get_attribute_descriptions(&pCount);
+    mesh_manager.planetPipe = gf3d_pipeline_create_from_config(
+        gf3d_vgraphics_get_default_logical_device(),
+        "config/planet_pipeline.cfg",
+        gf3d_vgraphics_get_view_extent(),
+        mesh_max,
+        gf3d_mesh_planet_get_bind_description(),
+        gf3d_mesh_planet_get_attribute_descriptions(NULL),
+        pCount,
+        sizeof(PlanetUBO),
+        VK_INDEX_TYPE_UINT16
+    );
     mesh_manager.defaultTexture = gf3d_texture_load("images/default.png");
     if(__DEBUG)slog("mesh manager initiliazed");
     atexit(gf3d_mesh_manager_close);
@@ -237,9 +237,8 @@ void gf3d_mesh_skybox_draw(Mesh *mesh,GFC_Matrix4 modelMat,GFC_Color mod,Texture
     gf3d_mesh_queue_render(mesh,mesh_manager.skyPipe,&ubo,texture);
 }
 
-void gf3d_mesh_planet_draw(Mesh *mesh,GFC_Matrix4 modelMat,GFC_Color mod,Texture *texture, GFC_Vector3D lightPos, GFC_Color lightCol, GFC_Vector3D planetPos) {
-    //PlanetUBO ubo = {0};
-    MeshUBO ubo = {0};
+void gf3d_mesh_planet_draw(Mesh *mesh,GFC_Matrix4 modelMat,GFC_Color mod,Texture *texture, GFC_Vector3D lightPos, GFC_Color lightCol, GFC_Vector3D planetPos, float radius) {
+    PlanetUBO ubo = {0};
     if (!mesh) {
         if(__DEBUG) slog("Cannot draw NULL mesh");
         return;
@@ -249,18 +248,20 @@ void gf3d_mesh_planet_draw(Mesh *mesh,GFC_Matrix4 modelMat,GFC_Color mod,Texture
         texture = mesh_manager.defaultTexture;
     }
 
-    // gfc_matrix4_copy(ubo.model, modelMat);
-    // gf3d_vgraphics_get_view(&ubo.view);
-    // gf3d_vgraphics_get_projection_matrix(&ubo.proj);
-    // gfc_vector3d_copy(ubo.planetCenter, planetPos);
-
     gfc_matrix4_copy(ubo.model, modelMat);
     gf3d_vgraphics_get_view(&ubo.view);
     gf3d_vgraphics_get_projection_matrix(&ubo.proj);
-    ubo.color = gfc_color_to_vector4f(mod);
-    ubo.camera = gfc_vector3dw(gf3d_camera_get_position(), 1.0);
+    ubo.planetPos = gfc_vector3dw(planetPos, radius);
     ubo.lightPos = gfc_vector3dw(lightPos, 1.0);
     ubo.lightColor = gfc_color_to_vector4f(lightCol);
+
+    // gfc_matrix4_copy(ubo.model, modelMat);
+    // gf3d_vgraphics_get_view(&ubo.view);
+    // gf3d_vgraphics_get_projection_matrix(&ubo.proj);
+    // ubo.color = gfc_color_to_vector4f(mod);
+    // ubo.camera = gfc_vector3dw(gf3d_camera_get_position(), 1.0);
+    // ubo.lightPos = gfc_vector3dw(lightPos, 1.0);
+    // ubo.lightColor = gfc_color_to_vector4f(lightCol);
 
     gf3d_mesh_queue_render(mesh,mesh_manager.planetPipe,&ubo,texture);
 }

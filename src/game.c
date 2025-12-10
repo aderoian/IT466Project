@@ -160,7 +160,7 @@ void runPlanetEditor() {
 
     settings = new_shape_settings(15, 15);
     pTexture = gf3d_texture_load("models/primitives/flatwhite.png");
-    planet = spawn_generated_celestial_entity(pTexture, gfc_vector3d(10, 10, 10));
+    planet = spawn_generated_celestial_entity(settings, pTexture, gfc_vector3d(10, 10, 10));
     planet->position.y = 30;
 
     editor_open(settings, &planet->mesh);

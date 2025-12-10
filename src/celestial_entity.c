@@ -11,8 +11,15 @@
 #define DISTANCE_SCALE_FACTOR 120
 #define BODY_SCALE_FACTOR 30
 
+typedef struct CelestialEntityData_s {
+    const ShapeSettings* settings;
+} CelestialEntityData;
+
+void generated_celestial_entity_draw(Entity* ent, GFC_Vector3D lightPos, GFC_Color lightColor);
+
 Entity* spawn_celestial_entity(CelestialBody* body) {
     Entity* self;
+    CelestialEntityData *data;
     if (!body) return NULL;
     if (!body->settings) return NULL;
 
@@ -24,8 +31,13 @@ Entity* spawn_celestial_entity(CelestialBody* body) {
     self->color = GFC_COLOR_WHITE;
     self->position = gfc_vector3d(body->pos.x * DISTANCE_SCALE_FACTOR, body->pos.y * DISTANCE_SCALE_FACTOR, 0);
     self->rotation = quaternion_create(0, 0, 0, 1);
-    self->scale = gfc_vector3d(1, 1, 1);//gfc_vector3d(body->settings->radius * 2 * BODY_SCALE_FACTOR, body->radius * 2 * BODY_SCALE_FACTOR, body->radius * 2 * BODY_SCALE_FACTOR);
+    self->scale = gfc_vector3d(1, 1, 1);
+    self->draw = generated_celestial_entity_draw;
     body->entity = self;
+
+    data = gfc_allocate_array(sizeof(CelestialEntityData), 1);
+    data->settings = body->settings;
+    self->data = data;
 
     self->physicsBody = physics_body_create();
     gfc_vector3d_copy(self->physicsBody->position, self->position);
@@ -117,12 +129,14 @@ void generated_celestial_entity_draw(Entity* ent, GFC_Vector3D lightPos, GFC_Col
         ent->texture,
         lightPos,
         lightColor,
-        ent->position
+        ent->position,
+        ((CelestialEntityData*) ent->data)->settings->radius
     );
 }
 
-Entity* spawn_generated_celestial_entity(Texture *texture, GFC_Vector3D scale) {
+Entity* spawn_generated_celestial_entity(const ShapeSettings *settings, Texture *texture, GFC_Vector3D scale) {
     Entity* self;
+    CelestialEntityData *data;
     if (!texture) return NULL;
 
     self = entity_new();
@@ -133,6 +147,10 @@ Entity* spawn_generated_celestial_entity(Texture *texture, GFC_Vector3D scale) {
     self->rotation = quaternion_create(0, 0, 0, 1);
     self->scale = scale;
     self->draw = generated_celestial_entity_draw;
+
+    data = gfc_allocate_array(sizeof(CelestialEntityData), 1);
+    data->settings = settings;
+    self->data = data;
 
     return self;
 }

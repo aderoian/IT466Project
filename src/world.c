@@ -139,7 +139,7 @@ SolarSystem* world_get_target_solarSystem() {
 }
 
 void world_set_target_solarSystem(SolarSystem* solarSystem) {
-    if (!solarSystem) return;
+    if (!solarSystem || world.solarSystem == solarSystem) return;
     world_despawn_solarSystem();
     world.solarSystem = solarSystem;
     world_spawn_solarSystem();
@@ -325,7 +325,7 @@ void world_generate_solarSystem(SolarSystem* ss) {
         //strcpy(body->texture, "models/primitives/flatwhite.png");
         //body->mass = gfc_random() * 10;
         body->mass = 10.f;
-        shapeData = sj_load("defs/shapes/default.json");
+        shapeData = sj_load("defs/shapes/hilly.json");
         body->settings = shape_settings_from_json(shapeData);
         if (!body->settings) slog ("Failed to load shape settings.");
         free(shapeData);
@@ -348,7 +348,7 @@ void world_generate_solarSystem(SolarSystem* ss) {
             //strcpy(body->texture, "models/primitives/flatwhite.png");
             moon->mass = gfc_random() * 4 + 1;
             //moon->radius = gfc_random() * 15;
-            shapeData = sj_load("defs/shapes/default.json");
+            shapeData = sj_load("defs/shapes/hilly.json");
             moon->settings = shape_settings_from_json(shapeData);
             free(shapeData);
 

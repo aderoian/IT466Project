@@ -40,7 +40,9 @@ typedef struct
     GFC_Matrix4     model;
     GFC_Matrix4     view;
     GFC_Matrix4     proj;
-    GFC_Vector3D    planetCenter;
+    GFC_Vector4D    planetPos;
+    GFC_Vector4D    lightPos;
+    GFC_Vector4D    lightColor;
 }PlanetUBO;
 
 typedef struct
@@ -112,7 +114,7 @@ void gf3d_mesh_draw(Mesh *mesh,GFC_Matrix4 modelMat,GFC_Color mod,Texture *textu
  */
 void gf3d_mesh_skybox_draw(Mesh *mesh,GFC_Matrix4 modelMat,GFC_Color mod,Texture *texture);
 
-void gf3d_mesh_planet_draw(Mesh *mesh,GFC_Matrix4 modelMat,GFC_Color mod,Texture *texture, GFC_Vector3D lightPos, GFC_Color lightCol, GFC_Vector3D planetPos);
+void gf3d_mesh_planet_draw(Mesh *mesh,GFC_Matrix4 modelMat,GFC_Color mod,Texture *texture, GFC_Vector3D lightPos, GFC_Color lightCol, GFC_Vector3D planetPos, float radius);
 
 /**
  * @brief allocate a zero initialized mesh primitive
