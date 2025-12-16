@@ -74,16 +74,14 @@ void fire_lazer_cannon(Weapon* weapon, Entity* shooter) {
 
     quaternion_rotate_v(&velocity, shooter->rotation, gfc_vector3d(0,1,0));
     gfc_vector3d_scale(velocity, velocity, weapon->bulletSpeed);
+    gfc_vector3d_add(velocity, velocity, shooter->velocity);
 
     bullet = bullet_spawn(shooter, weapon, shooter->position, velocity);
     if (bullet) quaternion_copy(&bullet->rotation, shooter->rotation);
 
-    slog("loading sound from file: %s", weapon->soundFile);
     sound = gfc_sound_load(weapon->soundFile, 1.0f, 0);
     if (sound) {
-        slog("playing sound");
         gfc_sound_play_to_group(sound, 0, 1.0f, "world");
-        //gfc_sound_free(sound);
     }
 }
 
@@ -96,6 +94,7 @@ void fire_dual_lazer_cannon(Weapon* weapon, Entity* shooter) {
     quaternion_rotate_v(&velocity, shooter->rotation, gfc_vector3d(0,1,0));
     quaternion_rotate_v(&right, shooter->rotation, gfc_vector3d(1,0,0));
     gfc_vector3d_scale(velocity, velocity, weapon->bulletSpeed);
+    gfc_vector3d_add(velocity, velocity, shooter->velocity);
 
     gfc_vector3d_scale(pos1, right, 15);
     gfc_vector3d_scale(pos2, right, -15);
@@ -108,10 +107,8 @@ void fire_dual_lazer_cannon(Weapon* weapon, Entity* shooter) {
     bullet = bullet_spawn(shooter, weapon, pos2, velocity);
     if (bullet) quaternion_copy(&bullet->rotation, shooter->rotation);
 
-    slog("loading sound from file: %s", weapon->soundFile);
     sound = gfc_sound_load(weapon->soundFile, 1.0f, 0);
     if (sound) {
-        slog("playing sound");
         gfc_sound_play(sound, 0, 1.0f, -1);
         gfc_sound_free(sound);
     }
@@ -127,6 +124,7 @@ void fire_quad_lazer_cannon(Weapon* weapon, Entity* shooter) {
     quaternion_rotate_v(&right, shooter->rotation, gfc_vector3d(1,0,0));
     quaternion_rotate_v(&up, shooter->rotation, gfc_vector3d(0,0,1));
     gfc_vector3d_scale(velocity, velocity, weapon->bulletSpeed);
+    gfc_vector3d_add(velocity, velocity, shooter->velocity);
 
     gfc_vector3d_scale(pos1, right, 15);
     gfc_vector3d_scale(pos2, right, -15);
@@ -155,10 +153,8 @@ void fire_quad_lazer_cannon(Weapon* weapon, Entity* shooter) {
     bullet = bullet_spawn(shooter, weapon, pos4, velocity);
     if (bullet) quaternion_copy(&bullet->rotation, shooter->rotation);
 
-    slog("loading sound from file: %s", weapon->soundFile);
     sound = gfc_sound_load(weapon->soundFile, 1.0f, 0);
     if (sound) {
-        slog("playing sound");
         gfc_sound_play(sound, 0, 1.0f, -1);
         gfc_sound_free(sound);
     }

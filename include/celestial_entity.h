@@ -6,6 +6,10 @@
 
 struct ShapeSettings_S;
 
+typedef struct CelestialEntityData_s {
+    const struct ShapeSettings_S* settings;
+} CelestialEntityData;
+
 typedef struct AsteroidEntityData_s {
     float health;
 } AsteroidEntityData;

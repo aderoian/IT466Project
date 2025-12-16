@@ -60,3 +60,7 @@ https://opengameart.org/content/galaxy-background-image
 https://www.flaticon.com/free-icon/solar-system_947683
 https://freesvg.org/1474979683
 https://www.solarsystemscope.com/textures/
+
+Sound Credits:
+Asteroid break effect by <a href="https://pixabay.com/users/lordsonny-38439655/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=184891">LordSonny</a> from <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=184891">Pixabay</a>
+Thruster effect by <a href="https://pixabay.com/users/freesound_community-46691455/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=100019">freesound_community</a> from <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=100019">Pixabay</a>

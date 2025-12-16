@@ -1,14 +1,232 @@
 {
     "resources": [
         {
-            "name": "Iron",
+            "name": "Hydrocarbon Sludge",
             "type": 1,
-            "icon": "images/ui/resource/blank_icon.png"
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 50.0
         },
         {
-            "name": "Computer",
+            "name": "Cryo Ice Mass",
             "type": 1,
-            "icon": "images/ui/resource/blank_icon.png"
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 30.0
+        },
+        {
+            "name": "Biomass Spores",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 40.0
+        },
+        {
+            "name": "Nitro Crystals",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 20.0
+        },
+        {
+            "name": "Iron Fragment Ore",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 85.0
+        },
+        {
+            "name": "Nickel-Chromium Shards",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 60.
+        },
+        {
+            "name": "Titanium Crust",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 55.0
+        },
+        {
+            "name": "Heavy Dense Ore",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 45.0
+        },
+        {
+            "name": "Silica Dust",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 35.0
+        },
+        {
+            "name": "Carbonite Lattice",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 10.0
+        },
+        {
+            "name": "Dark Residue",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 5.0
+        },
+        {
+            "name": "Flux Particles",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 2.0
+        },
+        {
+            "name": "Quantum Filament",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 3.0
+        },
+        {
+            "name": "Stellar Plasma Core",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 0.5
+        },
+        {
+            "name": "Refined Metal Ingot",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 0
+        },
+        {
+            "name": "High-Grade Alloy Plate",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 0
+        },
+        {
+            "name": "Heavy Composite Block",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 0
+        },
+        {
+            "name": "Synthetic Fuel Resin",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 0
+        },
+        {
+            "name": "Glass-Silicon Panel",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 0
+        },
+        {
+            "name": "Carbon Nanofiber",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 0
+        },
+        {
+            "name": "Bio-Gel Medium",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 0
+        },
+        {
+            "name": "Cryo-Stabilized Coolant",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 0
+        },
+        {
+            "name": "Flux Cell",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 0
+        },
+        {
+            "name": "Quantum Chipset",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 0
+        },
+        {
+            "name": "Dark Matter Condenser Core",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 0
+        },
+        {
+            "name": "Stellar Plasma Bottle",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 0
+        },
+        {
+            "name": "FTL Coil Assembly",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 0
+        },
+        {
+            "name": "Hull Plating Kit",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 0
+        },
+        {
+            "name": "Ion Engine",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 0
+        },
+        {
+            "name": "Warp/FTL Drive",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 0
+        },
+        {
+            "name": "Navigation Computer",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 0
+        },
+        {
+            "name": "Life Support System",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 0
+        },
+        {
+            "name": "Reactor Core MK2",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 0
+        },
+        {
+            "name": "Drone Assembly",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 0
+        },
+        {
+            "name": "Mining Laser Array",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 0
+        },
+        {
+            "name": "Organic Sensor Node",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 0
+        },
+        {
+            "name": "Small Alloy Kit",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 0
+        },
+        {
+            "name": "Reinforced Hull Plating",
+            "type": 1,
+            "icon": "images/ui/resource/blank_icon.png",
+            "asteroidChance": 0
         }
     ]
 }

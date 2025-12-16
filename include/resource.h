@@ -11,12 +11,20 @@ typedef struct Resource_s {
     const char* name;
     ResourceType type;
     const char* icon;
+    float asteroidChance;
 } Resource;
 
 typedef struct ResourceAmount_s {
     const Resource *resource;
     int amount;
 } ResourceAmount;
+
+typedef struct ResourceList_s {
+    Resource *resources;
+    int count;
+} ResourceList;
+
+extern ResourceList g_resourceList;
 
 void resource_init();
 

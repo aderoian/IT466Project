@@ -7,6 +7,8 @@
 #include "entity.h"
 #include "resource.h"
 
+struct SolarSystemCiv_S;
+
 typedef enum CivilType_e {
     CIVIL_TYPE_UNKNOWN,
     CIVIL_TYPE_MINING
@@ -35,11 +37,18 @@ typedef struct CivilizationEntityData_s {
     const Civilization *civilization;
 } CivilizationEntityData;
 
+typedef struct CivilizationList_s {
+    Civilization *civilizations;
+    int count;
+} CivilizationList;
+
+extern CivilizationList g_civilizationList;
+
 void civilization_init();
 
 const Civilization* civilization_get_by_name(const char *name);
 
-Entity* civilization_spawn(GFC_Vector3D pos, const Civilization* civilization);
+Entity* civilization_spawn(struct SolarSystemCiv_S *ssCiv);
 
 void civilization_trade_open(const Civilization* civ);
 void civilization_mission_open(const Civilization* civ);

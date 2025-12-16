@@ -1,30 +1,54 @@
 #include <pthread.h>
 
 #include "simple_logger.h"
+#include "simple_json.h"
 
 #include "gfc_types.h"
 #include "gfc_noise.h"
 #include "gfc_vector.h"
 
-#include "simple_json.h"
-
+#include "def.h"
 #include "player.h"
 #include "celestial_entity.h"
 #include "celestial_generator.h"
+#include "civilization.h"
 #include "world.h"
 
 #define NUM_ASTEROIDS 400
 #define MAX_ASTEROID_DISTANCE 75000
 
+static CelestialModels models = {0};
 static Universe universe = {0};
 static World world = {0};
 
 void world_init() {
+    DefinitionData *data, *planets, *planet;
+    SJson* settings;
+    int i;
     world.solarSystem = NULL;
     world.asteroids = gfc_list_new_size(NUM_ASTEROIDS);
 
     for (int i = 0 ; i < NUM_ASTEROIDS; i++) {
         gfc_list_append(world.asteroids, NULL);
+    }
+
+    data = def_load("defs/planets.def");
+    planets = def_data_get_obj(data, "planets");
+    def_data_array_get_count(planets, &models.numPlanets);
+    models.planets = malloc(sizeof(Mesh*) * models.numPlanets);
+    models.settings = malloc(sizeof(ShapeSettings*) * models.numPlanets);
+
+    for (i = 0; i < models.numPlanets; i++) {
+        planet = def_data_array_get_nth(planets, i);
+        settings = sj_load(def_data_get_string(planet, "src"));
+        if (settings) {
+            models.settings[i] = shape_settings_from_json(settings);
+            sj_free(settings);
+
+            if (models.settings[i]) {
+                models.planets[i] = generate_celestial_body(models.settings[i]);
+            }
+        }
     }
 }
 
@@ -50,30 +74,30 @@ void world_update() {
     if (!player || !world.solarSystem) return;
 
     // Remove stale asteroids (far from player)
-    // for (i = 0; i < NUM_ASTEROIDS && world.numAsteroids > 0; i++) {
-    //     body = (Entity*) gfc_list_get_nth(world.asteroids, i);
-    //     if (!body) continue;
+    for (i = 0; i < NUM_ASTEROIDS && world.numAsteroids > 0; i++) {
+        body = (Entity*) gfc_list_get_nth(world.asteroids, i);
+        if (!body) continue;
 
-    //     if (gfc_vector3d_magnitude_between_squared(body->position, player->position) < MAX_ASTEROID_DISTANCE * MAX_ASTEROID_DISTANCE) {
-    //         if (body->_inuse == 0) gfc_list_set_nth(world.asteroids, i, NULL);
-    //         continue;
-    //     }
+        if (gfc_vector3d_magnitude_between_squared(body->position, player->position) < MAX_ASTEROID_DISTANCE * MAX_ASTEROID_DISTANCE) {
+            if (body->_inuse == 0) gfc_list_set_nth(world.asteroids, i, NULL);
+            continue;
+        }
 
-    //     if (body) entity_free(body);
-    //     gfc_list_set_nth(world.asteroids, i, NULL);
-    //     world.numAsteroids--;
-    // }
+        if (body) entity_free(body);
+        gfc_list_set_nth(world.asteroids, i, NULL);
+        world.numAsteroids--;
+    }
 
-    // // Create new asteroids to fill to cap
-    // for (i = 0; i < NUM_ASTEROIDS && world.numAsteroids < NUM_ASTEROIDS; i++) {
-    //     body = (Entity*) gfc_list_get_nth(world.asteroids, i);
-    //     if (body) continue;
+    // Create new asteroids to fill to cap
+    for (i = 0; i < NUM_ASTEROIDS && world.numAsteroids < NUM_ASTEROIDS; i++) {
+        body = (Entity*) gfc_list_get_nth(world.asteroids, i);
+        if (body) continue;
 
-    //     // Create asteroid
-    //     body = world_create_asteroid(player->position, world.solarSystem);
-    //     gfc_list_set_nth(world.asteroids, i, body);
-    //     world.numAsteroids++;
-    // }
+        // Create asteroid
+        body = world_create_asteroid(player->position, world.solarSystem);
+        gfc_list_set_nth(world.asteroids, i, body);
+        world.numAsteroids++;
+    }
 }
 
 void world_load_universe(Universe* universe) {
@@ -95,6 +119,7 @@ void world_spawn_solarSystem() {
     int i;
     SolarSystem* ss = world_get_target_solarSystem();
     CelestialBody* body;
+    SolarSystemCiv *civ;
     Entity* ent;
     if (!ss) return;
 
@@ -108,18 +133,36 @@ void world_spawn_solarSystem() {
         }
         body->entity = ent;
     }
+
+    for (i = 0; i < ss->numCivilizations; i++) {
+        civ = ss->civilizations[i];
+        if (!civ) continue;
+        ent = civilization_spawn(civ);
+        if (!ent) {
+            slog("Failed to spawn civ");
+            continue;
+        }
+        civ->entity = ent;
+    }
 }
 
 void world_despawn_solarSystem() {
     int i;
     SolarSystem* ss = world_get_target_solarSystem();
     CelestialBody* body;
+    SolarSystemCiv *civ;
     if (!ss) return;
 
     for (i = 0; i < ss->numBodies; i++) {
         body = ss->celestialBodies[i];
         if (!body || !body->entity) continue;
         entity_free(body->entity);
+    }
+
+    for (i = 0; i < ss->numCivilizations; i++) {
+        civ = ss->civilizations[i];
+        if (!civ || !civ->entity) continue;
+        entity_free(civ->entity);
     }
 
     world.solarSystem = NULL;
@@ -306,15 +349,17 @@ void world_get_planet_texture(char* out, int i) {
 }
 
 void world_generate_solarSystem(SolarSystem* ss) {
-    int i, j, numPlanets, numMoons, totalNumMoons = 0;
-    float totalRadiusDistance = 45, angle, dx, dy, totalMoonRadiusDistance = 0;
+    int i, j, numPlanets, numMoons, totalNumMoons = 0, bodySel;
+    float totalRadiusDistance = 45, angle, dx, dy, totalMoonRadiusDistance = 0, civDist;
     CelestialBody *body, *moon;
+    SolarSystemCiv *civ;
     SJson *shapeData;
-    GFC_List* bodies;
+    GFC_List* bodies, *civs;
     if (!ss) return;
 
     numPlanets = gfc_random_int(10) + 5 + 1;
     bodies = gfc_list_new();
+    civs = gfc_list_new();
 
     for (i = 0; i < numPlanets; i++) {
         body = gfc_allocate_array(sizeof(CelestialBody), 1);
@@ -325,10 +370,9 @@ void world_generate_solarSystem(SolarSystem* ss) {
         //strcpy(body->texture, "models/primitives/flatwhite.png");
         //body->mass = gfc_random() * 10;
         body->mass = 10.f;
-        shapeData = sj_load("defs/shapes/hilly.json");
-        body->settings = shape_settings_from_json(shapeData);
-        if (!body->settings) slog ("Failed to load shape settings.");
-        free(shapeData);
+        bodySel = gfc_random_int(models.numPlanets);
+        body->settings = models.settings[bodySel];
+        body->model = models.planets[bodySel];
 
         //totalRadiusDistance += (gfc_random() * 15) + 20;
         totalRadiusDistance += 30;
@@ -348,9 +392,9 @@ void world_generate_solarSystem(SolarSystem* ss) {
             //strcpy(body->texture, "models/primitives/flatwhite.png");
             moon->mass = gfc_random() * 4 + 1;
             //moon->radius = gfc_random() * 15;
-            shapeData = sj_load("defs/shapes/hilly.json");
-            moon->settings = shape_settings_from_json(shapeData);
-            free(shapeData);
+            bodySel = gfc_random_int(models.numPlanets);
+            moon->settings = models.settings[bodySel];
+            moon->model = models.planets[bodySel];
 
             //totalMoonRadiusDistance += (gfc_random() * 4) + 1;
             totalMoonRadiusDistance += 15.f;
@@ -361,15 +405,37 @@ void world_generate_solarSystem(SolarSystem* ss) {
             moon->pos.y = body->pos.y + dy;
         }
         totalNumMoons += numMoons;
+
+        if (gfc_random() < 0.20f) {
+            civ = gfc_allocate_array(sizeof(SolarSystemCiv), 1);
+            civ->civ = &g_civilizationList.civilizations[gfc_random_int(g_civilizationList.count)];
+            civ->planet = body;
+            
+            civDist = 15.0f;
+            angle = gfc_random() * GFC_2PI;
+            dx = cosf(angle) * civDist;
+            dy = sinf(angle) * civDist;
+            civ->pos.x = body->pos.x + dx;
+            civ->pos.y = body->pos.y + dx;
+
+            gfc_list_append(civs, civ);
+        }
     }
 
-    ss->celestialBodies = gfc_allocate_array(sizeof(CelestialBody*), numPlanets + totalNumMoons);
+    ss->celestialBodies = gfc_allocate_array(sizeof(CelestialBody*), gfc_list_count(bodies));
     for (i = 0; i < gfc_list_count(bodies); i++) {
         ss->celestialBodies[i] = (CelestialBody*) gfc_list_get_nth(bodies, i);
     }
-    ss->numBodies = numPlanets + totalNumMoons;
+    ss->numBodies = gfc_list_count(bodies);
+
+    ss->civilizations = gfc_allocate_array(sizeof(SolarSystemCiv*), gfc_list_count(civs));
+    for (i = 0; i < gfc_list_count(civs); i++) {
+        ss->civilizations[i] = (SolarSystemCiv*) gfc_list_get_nth(civs, i);
+    }
+    ss->numCivilizations = gfc_list_count(civs);
 
     gfc_list_delete(bodies);
+    gfc_list_delete(civs);
 }
 
 void world_generate_planeOfPoints(GFC_List *points, int width, int height, int R) {

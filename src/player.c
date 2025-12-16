@@ -1,9 +1,12 @@
 #include "simple_logger.h"
 #include "gfc_input.h"
+#include "gfc_audio.h"
 #include "gf3d_vgraphics.h"
 #include "gf2d_mouse.h"
 #include "bullet_entity.h"
 #include "civilization.h"
+#include "celestial_generator.h"
+#include "celestial_entity.h"
 #include "ui.h"
 #include "mission_menu.h"
 #include "inv_screen.h"
@@ -22,7 +25,11 @@
 
 #define clamp(x, low, high) ((x) < (low) ? (low) : ((x) > (high) ? (high) : (x)))
 
+int _INF_RES = 0;
+
 Entity* player = NULL;
+static GFC_Sound* thrustSound = NULL;
+static Uint8 playing = 0;
 
 void on_collide(const CollisionInfo* info) {
     Entity *player, *other;
@@ -46,8 +53,7 @@ void on_collide(const CollisionInfo* info) {
     } else 
     
     if (strcmp(other->name, "civilization") == 0) {
-        if (!pData->civilContact)
-            pData->civilContact = ((CivilizationEntityData*) other->data)->civilization;
+        pData->civilContact = ((CivilizationEntityData*) other->data)->civilization;
     } else {
         pData->civilContact = NULL;
     }
@@ -143,7 +149,7 @@ void player_update(Entity* ent) {
     Quaternion* rot, delta;
     int mdx, mdy, i;
     float half, rollDelta = 0, speedSq;
-    GFC_Vector3D forward, velocity, rotation;
+    GFC_Vector3D forward, velocity = {0}, rotation;
     PlayerData* data;
     if (!ent) return;
 
@@ -194,6 +200,10 @@ void player_update(Entity* ent) {
         }
     }
 
+    if (!thrustSound) {
+        thrustSound = gfc_sound_load("sounds/thruster.wav", 1.0f, 2);
+    }
+
     speedSq = gfc_vector3d_magnitude_squared(ent->physicsBody->velocity);
     velocity = ent->physicsBody->velocity;
     if (speedSq < 0.0001) {
@@ -202,6 +212,16 @@ void player_update(Entity* ent) {
         gfc_vector3d_normalize(&velocity);
         gfc_vector3d_scale(velocity, velocity, fminf(sqrt(speedSq), PLAYER_MOVEMENT_DRAG));
         gfc_vector3d_sub(ent->physicsBody->velocity, ent->physicsBody->velocity, velocity);
+    }
+
+    if (speedSq != 0) {
+        if (!playing && !Mix_Playing(thrustSound->defaultChannel)) {
+            gfc_sound_play(thrustSound, -1, 1.0f, 2);
+            playing = 1;
+        }
+    } else if (playing) {
+        Mix_HaltChannel(thrustSound->defaultChannel);
+        playing = 0;
     }
 }
 
@@ -214,25 +234,35 @@ void player_free(Entity* ent) {
 }
 
 Entity* init_player(GFC_Vector3D position, GFC_Color color) {
+    int i;
     PlayerData* data = NULL;
-
     Entity* self;
     self = entity_new();
     if (!self) return NULL;
 
     gfc_line_cpy(self->name, "player");
-    self->mesh = gf3d_mesh_load("models/dino/dino.obj");
-    self->texture = gf3d_texture_load("models/dino/dino.png");
+    self->mesh = gf3d_mesh_load("models/ships/player.obj");
+    self->texture = gf3d_texture_load("models/ships/player.png");
     if (!self->mesh || !self->texture) {
         slog("ERROR: NO MESH OR TEXTURE");
     }
     self->color = color;
     self->position = position;
+    self->scale = gfc_vector3d(2.5, 2.5, 2.5);
 
     data = gfc_allocate_array(sizeof(PlayerData), 1);
     ship_init_basic(&data->ship);
+
+    data->invSize = g_resourceList.count;
+    data->inventory = gfc_allocate_array(sizeof(ResourceAmount), data->invSize);
+    for (i = 0; i < data->invSize; i++) {
+        data->inventory[i].amount = 0;
+        data->inventory[i].resource = &g_resourceList.resources[i];
+    }
+
     data->civilMissions = gfc_list_new();
     self->data = data;
+
     self->free = player_free;
     self->think = player_think;
     self->update = player_update;
@@ -294,8 +324,8 @@ int player_try_end_mission(Entity* player, struct CivilMission_s *mission, Uint8
         return 1;
     }
 
-    if (player_try_take_resource(player, &mission->trans->take)) {
-        player_try_give_resource(player, &mission->trans->give);
+    if (player_try_take_resource(player, &mission->trans->give)) {
+        player_try_give_resource(player, &mission->trans->take);
         gfc_list_delete_data(data->civilMissions, mission);
         free(mission);
         return 1;
@@ -311,7 +341,7 @@ int player_has_resource_of(Entity* player, const Resource* resource, int amount)
 
     playerData = (PlayerData*) player->data;
     for (i = 0; i < playerData->invSize; i++) {
-        if (playerData->inventory[i].resource == resource && playerData->inventory[i].amount >= amount)
+        if (strcmp(playerData->inventory[i].resource->name, resource->name) == 0 && playerData->inventory[i].amount >= amount)
             return 1;
     }
     return 0;
@@ -321,11 +351,12 @@ int player_try_take_resource(Entity* player, const ResourceAmount* resAmount) {
     int i;
     PlayerData *playerData;
     if (!player || !player->data || !resAmount) return 0;
+    if (_INF_RES) return 1;
     if (!player_has_resource_of(player, resAmount->resource, resAmount->amount)) return 0;
 
     playerData = (PlayerData*) player->data;
     for (i = 0; i < playerData->invSize; i++) {
-        if (playerData->inventory[i].resource == resAmount->resource) {
+        if (strcmp(playerData->inventory[i].resource->name, resAmount->resource->name) == 0) {
             playerData->inventory[i].amount -= resAmount->amount;
             return 1;
         }
@@ -336,32 +367,42 @@ int player_try_take_resource(Entity* player, const ResourceAmount* resAmount) {
 int player_try_give_resource(Entity* player, const ResourceAmount* resAmount) {
     int i;
     PlayerData *playerData;
+    ResourceAmount *oldInv;
     if (!player || !player->data || !resAmount) return 0;
 
     playerData = (PlayerData*) player->data;
-    if (!player_has_resource_of(player, resAmount->resource, 0)) {
-        if (playerData->invSize == playerData->invCap) {
-            playerData->invCap *= 2;
-            playerData->inventory = realloc(playerData->inventory, sizeof(ResourceAmount) * playerData->invCap);
-        }
-
-        playerData->inventory[playerData->invSize++].resource = resAmount->resource;
-    }
-
     for (i = 0; i < playerData->invSize; i++) {
-        if (playerData->inventory[i].resource == resAmount->resource) {
+        if (strcmp(playerData->inventory[i].resource->name, resAmount->resource->name) == 0) {
             playerData->inventory[i].amount += resAmount->amount;
             return 1;
         }
     }
+
     return 0;
 }
 
+void player_give_resource(Entity* player, const Resource *resource, int amount) {
+    int i;
+    PlayerData *playerData;
+    ResourceAmount *oldInv;
+    if (!player || !player->data || !resource) return;
+
+    playerData = (PlayerData*) player->data;
+    for (i = 0; i < playerData->invSize; i++) {
+        if (strcmp(playerData->inventory[i].resource->name, resource->name) == 0) {
+            playerData->inventory[i].amount += amount;
+            return;
+        }
+    }
+    return;
+}
+
 int player_try_init_build(Entity* player) {
-    GFC_Vector3D forward, hitPos, offset;
+    GFC_Vector3D forward, hitPos, offset, dir;
     float distance;
     PhysicsBody *body;
     Entity* hitEnt;
+    Noise* noise;
     if (!player) return 0;
 
     quaternion_rotate_v(&forward, player->rotation, gfc_vector3d(0, 1, 0));
@@ -369,6 +410,16 @@ int player_try_init_build(Entity* player) {
     gfc_vector3d_add(offset, offset, player->position);
     if (physics_raycast_sphere(offset, forward, 1000.0f, &body, &distance, &hitPos)) {
         hitEnt = body->owner;
+
+        if (strcmp(hitEnt->name, "celestial") == 0) {
+            noise = noise_new();
+            gfc_vector3d_sub(dir, hitPos, hitEnt->position);
+            gfc_vector3d_normalize(&dir);
+            gfc_vector3d_scale(dir, dir, evaluate_noise(noise, ((CelestialEntityData*) hitEnt->data)->settings, hitPos));
+            gfc_vector3d_add(hitPos, dir, hitEnt->position);
+            free(noise);
+        }
+
         building_menu_open(hitEnt, hitPos);
         return 1;
     }
@@ -380,7 +431,6 @@ int player_try_build(Entity* player, const Building *building, Entity *planet, G
     int i;
     if (!player || !building || !planet) return 0;
 
-    slog("trying to build");
     for (i = 0; i < building->costAmount; i++) {
         if (!player_has_resource_of(player, building->cost[i].resource, building->cost[i].amount))
             return 0;
@@ -390,7 +440,6 @@ int player_try_build(Entity* player, const Building *building, Entity *planet, G
             return 0;
     }
 
-    slog("spawning");
     building = building_get_by_name("Quarry");
     if (!building_spawn_entity(planet, building, pos)) {
         slog("failed to spawn building entity");
@@ -398,4 +447,19 @@ int player_try_build(Entity* player, const Building *building, Entity *planet, G
     }
 
     return 1;
+}
+
+void player_destroy_asteroid(Entity* player) {
+    int i, drops;
+    float randm;
+    if (!player) return;
+
+    drops = gfc_random_int(9) + 1;
+    for (i = 0; i < g_resourceList.count && drops; i++) {
+        randm = gfc_random();
+        if ((1 - g_resourceList.resources[i].asteroidChance) <= randm) {
+            player_give_resource(player, &g_resourceList.resources[i], 1);
+            drops--;
+        }
+    }
 }

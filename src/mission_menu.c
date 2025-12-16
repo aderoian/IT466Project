@@ -112,17 +112,17 @@ void mission_menu_draw() {
             ui_draw_element(tradeCard);
             data = (MissionCardData*) tradeCard->data;
             gfc_vector2d_add(pos, data->pos, gfc_vector2d(25, 185));
-            sprintf(buffer, "Collect:");
+            sprintf(buffer, "Give:");
             gf2d_font_draw_line_tag(buffer, FT_Small, GFC_COLOR_WHITE, pos);
             pos.y += 20;
-            sprintf(buffer, "%s x%d", data->mission->trans->take.resource->name, data->mission->trans->take.amount);
+            sprintf(buffer, "%s x%d", data->mission->trans->give.resource->name, data->mission->trans->give.amount);
             gf2d_font_draw_line_tag(buffer, FT_Small, GFC_COLOR_WHITE, pos);
 
             pos.y += 30;
             sprintf(buffer, "Reward:");
             gf2d_font_draw_line_tag(buffer, FT_Small, GFC_COLOR_WHITE, pos);
             pos.y += 20;
-            sprintf(buffer, "%s x%d", data->mission->trans->give.resource->name, data->mission->trans->give.amount);
+            sprintf(buffer, "%s x%d", data->mission->trans->take.resource->name, data->mission->trans->take.amount);
             gf2d_font_draw_line_tag(buffer, FT_Small, GFC_COLOR_WHITE, pos);
         }
     }

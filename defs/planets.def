@@ -1,0 +1,19 @@
+{
+    "planets": [
+        {
+            "src": "defs/shapes/asteroid.json"
+        },
+        {
+            "src": "defs/shapes/default.json"
+        },
+        {
+            "src": "defs/shapes/hilly.json"
+        },
+        {
+            "src": "defs/shapes/spikey.json"
+        },
+        {
+            "src": "defs/shapes/testing_toolchain.json"
+        }
+    ]
+}

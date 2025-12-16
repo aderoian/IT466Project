@@ -1,182 +1,254 @@
 {
     "civilizations": [
         {
-            "name": "Armen's Colony",
+            "name": "Arkon Industrial Syndicate",
             "type": 1,
             "trades": [
                 {
                     "give": {
-                        "resource": "Iron",
+                        "resource": "Iron Fragment Ore",
                         "amount": 5
                     },
                     "take": {
-                        "resource": "Computer",
-                        "amount": 1
+                        "resource": "Refined Metal Ingot",
+                        "amount": 5
                     }
                 },
                 {
                     "give": {
-                        "resource": "Iron",
-                        "amount": 5
+                        "resource": "Heavy Dense Ore",
+                        "amount": 3
                     },
                     "take": {
-                        "resource": "Computer",
-                        "amount": 1
+                        "resource": "Heavy Composite Block",
+                        "amount": 3
                     }
                 },
                 {
                     "give": {
-                        "resource": "Iron",
-                        "amount": 5
+                        "resource": "Silica Dust",
+                        "amount": 4
                     },
                     "take": {
-                        "resource": "Computer",
-                        "amount": 1
-                    }
-                },
-                {
-                    "give": {
-                        "resource": "Iron",
-                        "amount": 5
-                    },
-                    "take": {
-                        "resource": "Computer",
-                        "amount": 1
+                        "resource": "Glass-Silicon Panel",
+                        "amount": 4
                     }
                 }
             ],
             "missions": [
                 {
                     "give": {
-                        "resource": "Iron",
+                        "resource": "Titanium Crust",
+                        "amount": 150
+                    },
+                    "take": {
+                        "resource": "High-Grade Alloy Plate",
+                        "amount": 5
+                    }
+                }
+            ],
+            "model": "models/ships/player.obj",
+            "texture": "models/ships/player.png"
+        },
+        {
+            "name": "Virellan Bio-Collective",
+            "type": 1,
+            "trades": [
+                {
+                    "give": {
+                        "resource": "Biomass Spores",
                         "amount": 5
                     },
                     "take": {
-                        "resource": "Computer",
-                        "amount": 1
+                        "resource": "Bio-Gel Medium",
+                        "amount": 5
                     }
                 },
                 {
                     "give": {
-                        "resource": "Iron",
-                        "amount": 5
+                        "resource": "Cryo Ice Mass",
+                        "amount": 3
                     },
                     "take": {
-                        "resource": "Computer",
-                        "amount": 1
+                        "resource": "Cryo-Stabilized Coolant",
+                        "amount": 3
                     }
                 },
                 {
                     "give": {
-                        "resource": "Iron",
+                        "resource": "Silica Dust",
+                        "amount": 4
+                    },
+                    "take": {
+                        "resource": "Organic Sensor Node",
+                        "amount": 4
+                    }
+                }
+            ],
+            "missions": [
+                {
+                    "give": {
+                        "resource": "Biomass Spores",
+                        "amount": 500
+                    },
+                    "take": {
+                        "resource": "Synthetic Fuel Resin",
+                        "amount": 15
+                    }
+                }
+            ],
+            "model": "models/ships/player.obj",
+            "texture": "models/ships/player.png"
+        },
+        {
+            "name": "Solari Star Monks",
+            "type": 1,
+            "trades": [
+                {
+                    "give": {
+                        "resource": "Stellar Plasma Core",
                         "amount": 5
                     },
                     "take": {
-                        "resource": "Computer",
-                        "amount": 1
+                        "resource": "Stellar Plasma Bottle",
+                        "amount": 5
                     }
                 },
                 {
                     "give": {
-                        "resource": "Iron",
-                        "amount": 5
+                        "resource": "Flux Cell",
+                        "amount": 3
                     },
                     "take": {
-                        "resource": "Computer",
-                        "amount": 1
+                        "resource": "FTL Coil Assembly",
+                        "amount": 3
                     }
                 },
                 {
                     "give": {
-                        "resource": "Iron",
-                        "amount": 5
+                        "resource": "Quantum Filament",
+                        "amount": 4
                     },
                     "take": {
-                        "resource": "Computer",
-                        "amount": 1
+                        "resource": "Quantum Chipset",
+                        "amount": 4
                     }
-                },
+                }
+            ],
+            "missions": [
                 {
                     "give": {
-                        "resource": "Iron",
-                        "amount": 5
+                        "resource": "Stellar Plasma Core",
+                        "amount": 50
                     },
                     "take": {
-                        "resource": "Computer",
-                        "amount": 1
-                    }
-                },
-                {
-                    "give": {
-                        "resource": "Iron",
-                        "amount": 5
-                    },
-                    "take": {
-                        "resource": "Computer",
-                        "amount": 1
-                    }
-                },
-                {
-                    "give": {
-                        "resource": "Iron",
-                        "amount": 5
-                    },
-                    "take": {
-                        "resource": "Computer",
-                        "amount": 1
-                    }
-                },
-                {
-                    "give": {
-                        "resource": "Iron",
-                        "amount": 5
-                    },
-                    "take": {
-                        "resource": "Computer",
-                        "amount": 1
-                    }
-                },
-                {
-                    "give": {
-                        "resource": "Iron",
-                        "amount": 5
-                    },
-                    "take": {
-                        "resource": "Computer",
-                        "amount": 1
-                    }
-                },
-                {
-                    "give": {
-                        "resource": "Iron",
-                        "amount": 5
-                    },
-                    "take": {
-                        "resource": "Computer",
-                        "amount": 1
-                    }
-                },
-                {
-                    "give": {
-                        "resource": "Iron",
-                        "amount": 5
-                    },
-                    "take": {
-                        "resource": "Computer",
+                        "resource": "Ion Engine",
                         "amount": 1
                     }
                 }
             ],
-            "model": "models/primitives/cube.obj",
-            "texture": "models/primitives/flatwhite.png"
+            "model": "models/ships/player.obj",
+            "texture": "models/ships/player.png"
         },
         {
-            "name": "Ryan's Colony",
+            "name": "Zenith Flux Dominion",
             "type": 1,
-            "trades": [],
-            "missions": [],
-            "model": "models/primitives/cube.obj",
-            "texture": "models/primitives/flatwhite.png"
+            "trades": [
+                {
+                    "give": {
+                        "resource": "Flux Particles",
+                        "amount": 5
+                    },
+                    "take": {
+                        "resource": "Flux Cell",
+                        "amount": 5
+                    }
+                },
+                {
+                    "give": {
+                        "resource": "Dark Residue",
+                        "amount": 3
+                    },
+                    "take": {
+                        "resource": "Dark Matter Condenser Core",
+                        "amount": 3
+                    }
+                },
+                {
+                    "give": {
+                        "resource": "Carbon Nanofiber",
+                        "amount": 4
+                    },
+                    "take": {
+                        "resource": "Quantum Chipset",
+                        "amount": 4
+                    }
+                }
+            ],
+            "missions": [
+                {
+                    "give": {
+                        "resource": "Flux Particles",
+                        "amount": 1000
+                    },
+                    "take": {
+                        "resource": "Warp/FTL Drive",
+                        "amount": 1
+                    }
+                }
+            ],
+            "model": "models/ships/player.obj",
+            "texture": "models/ships/player.png"
+        },
+        {
+            "name": "Mercantile Free Worlds Coalition",
+            "type": 1,
+            "trades": [
+                {
+                    "give": {
+                        "resource": "Refined Metal Ingot",
+                        "amount": 5
+                    },
+                    "take": {
+                        "resource": "Small Alloy Kit",
+                        "amount": 5
+                    }
+                },
+                {
+                    "give": {
+                        "resource": "Bio-Gel Medium",
+                        "amount": 3
+                    },
+                    "take": {
+                        "resource": "Reinforced Hull Plating",
+                        "amount": 3
+                    }
+                },
+                {
+                    "give": {
+                        "resource": "Heavy Composite Block",
+                        "amount": 4
+                    },
+                    "take": {
+                        "resource": "Navigation Computer",
+                        "amount": 4
+                    }
+                }
+            ],
+            "missions": [
+                {
+                    "give": {
+                        "resource": "Heavy Dense Ore",
+                        "amount": 10000
+                    },
+                    "take": {
+                        "resource": "Reactor Core MK2",
+                        "amount": 1
+                    }
+                }
+            ],
+            "model": "models/ships/player.obj",
+            "texture": "models/ships/player.png"
         }
     ]
 }

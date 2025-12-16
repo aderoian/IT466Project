@@ -1,5 +1,5 @@
-# ifndef PLAYER_H
-# define PLAYER_H
+#ifndef PLAYER_H
+#define PLAYER_H
 
 #include "gfc_vector.h"
 #include "gfc_color.h"
@@ -32,7 +32,6 @@ typedef struct {
 
     struct ResourceAmount_s* inventory;
     Uint32 invSize;
-    Uint32 invCap;
 } PlayerData;
 
 extern Entity* player;
@@ -53,8 +52,11 @@ int player_try_end_mission(Entity* player, struct CivilMission_s *mission, Uint8
 int player_has_resource_of(Entity* player, const struct Resource_s* resource, int amount);
 int player_try_take_resource(Entity* player, const struct ResourceAmount_s* resAmount);
 int player_try_give_resource(Entity* player, const struct ResourceAmount_s* resAmount);
+void player_give_resource(Entity* player, const struct Resource_s* resource, int amount);
 
 int player_try_init_build(Entity* player);
 int player_try_build(Entity* player, const struct Building_S *building, Entity *planet, GFC_Vector3D pos);
+
+void player_destroy_asteroid(Entity* player);
 
 # endif

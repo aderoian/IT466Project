@@ -3,6 +3,7 @@
 #include "gfc_color.h"
 #include "gf3d_texture.h"
 #include "gf3d_mesh.h"
+#include "gfc_audio.h"
 
 #include "celestial_generator.h"
 
@@ -11,9 +12,8 @@
 #define DISTANCE_SCALE_FACTOR 120
 #define BODY_SCALE_FACTOR 30
 
-typedef struct CelestialEntityData_s {
-    const ShapeSettings* settings;
-} CelestialEntityData;
+static Mesh* asteroidMesh = NULL;
+static GFC_Sound* asteroidDestroy = NULL;
 
 void generated_celestial_entity_draw(Entity* ent, GFC_Vector3D lightPos, GFC_Color lightColor);
 
@@ -25,7 +25,8 @@ Entity* spawn_celestial_entity(CelestialBody* body) {
 
     self = entity_new();
     strcpy(self->name, "celestial");
-    self->mesh = generate_celestial_body(body->settings);
+    self->mesh = body->model;
+    body->model->_refCount++; // HACK: Planet body mesh's dont get allocated correctly
     if (!self->mesh) return NULL;
     self->texture = gf3d_texture_load(body->texture);
     self->color = GFC_COLOR_WHITE;
@@ -56,6 +57,12 @@ void asteroid_think(Entity* ent) {
     data = ent->data;
     if (data->health <= 0) {
         // TODO: Resource drop
+        if (!asteroidDestroy) {
+            asteroidDestroy = gfc_sound_load("sounds/asteroid_destroy.wav", 1.0f, 0);
+            gfc_sound_play_to_group(asteroidDestroy, 0, 1.0f, "world");
+        } else {
+            gfc_sound_play_to_group(asteroidDestroy, 0, 1.0f, "world");
+        }
         ent->think = entity_free;
     }
 }
@@ -84,10 +91,12 @@ Entity* spawn_asteroid(GFC_Vector3D position, float size) {
     GFC_Vector3D dir;
 
     self = entity_new();
+    if (!self) return NULL;
+
     strcpy(self->name, "asteroid");
     self->mesh = gf3d_mesh_load("models/primitives/sphere.obj");
     self->texture = gf3d_texture_load("models/primitives/flatwhite.png");
-    self->color = GFC_COLOR_YELLOW;
+    self->color = GFC_COLOR_BROWN;
     self->position = position;
     self->rotation = quaternion_create(0, 0, 0, 1);
     self->scale = gfc_vector3d(size * 2.f, size * 2.f, size * 2.f);

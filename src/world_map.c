@@ -140,18 +140,26 @@ void world_map_load_solarsystem(SolarSystem* solarSystem) {
         map_manager.solarSystemView = NULL;
     }
 
-    solarSystemView = (UIElement**) gfc_allocate_array(sizeof(UIElement*), solarSystem->numBodies);
+    solarSystemView = (UIElement**) gfc_allocate_array(sizeof(UIElement*), solarSystem->numBodies + solarSystem->numCivilizations);
     for (i = 1; i < solarSystem->numBodies; i++) {
         gfc_vector2d_add(position, solarSystem->celestialBodies[i]->pos, gfc_vector2d(640, 360));
-        solarSystemView[i]  = ui_element_create_simple("images/ui/map/planet_icon.png", position);
+        solarSystemView[i] = ui_element_create_simple("images/ui/map/planet_icon.png", position);
         data = gfc_allocate_array(sizeof(ViewIconData), 1);
         data->index = i;
         solarSystemView[i]->data = data;
     }
+    for (i = 0; i < solarSystem->numCivilizations; i++) {
+        gfc_vector2d_add(position, solarSystem->civilizations[i]->pos, gfc_vector2d(640, 360));
+        solarSystemView[i + solarSystem->numBodies] = ui_element_create_simple("images/ui/map/civ_icon.png", position);
+        data = gfc_allocate_array(sizeof(ViewIconData), 1);
+        data->index = i + solarSystem->numBodies;
+        solarSystemView[i + solarSystem->numBodies]->data = data;
+    }
+
     map_manager.solarSystemView = solarSystemView;
     map_manager.baseUI->children = solarSystemView;
-    map_manager.baseUI->childCount = solarSystem->numBodies;
-    map_manager.celestialBodies = solarSystem->numBodies;
+    map_manager.baseUI->childCount = solarSystem->numBodies + solarSystem->numCivilizations;
+    map_manager.celestialBodies = solarSystem->numBodies + solarSystem->numCivilizations;
     map_manager.jumpTarget = 0;
 }
 

@@ -8,6 +8,8 @@
 
 struct SolarSystem_s;
 struct ShapeSettings_S;
+struct Civilization_s;
+struct Mesh_S;
 
 typedef struct World_s {
     struct SolarSystem_s* solarSystem;
@@ -22,9 +24,16 @@ typedef enum {
     SUN
 } CelestialBodyType;
 
+typedef struct CelestialModels_S {
+    struct ShapeSettings_S** settings;
+    struct Mesh_S** planets;
+    Uint32 numPlanets;
+} CelestialModels;
+
 typedef struct CelestialBody_s {
     CelestialBodyType type;
     GFC_TextLine name;
+    struct Mesh_S* model;
     Entity* entity;
     char texture[50];
     GFC_Vector2D pos;
@@ -32,11 +41,20 @@ typedef struct CelestialBody_s {
     struct ShapeSettings_S *settings;
 } CelestialBody;
 
+typedef struct SolarSystemCiv_S {
+    struct Civilization_s* civ;
+    CelestialBody* planet;
+    Entity* entity;
+    GFC_Vector2D pos;
+} SolarSystemCiv;
+
 typedef struct SolarSystem_s {
     GFC_TextLine name;
     GFC_Vector2D pos;
     CelestialBody** celestialBodies;
     int numBodies;
+    SolarSystemCiv** civilizations;
+    int numCivilizations;
 } SolarSystem;
 
 typedef struct Galaxy_s {

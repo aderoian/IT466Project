@@ -45,6 +45,8 @@
 
 extern int __DEBUG;
 
+extern int _INF_RES;
+
 static int editor;
 
 static int _done = 0;
@@ -95,8 +97,8 @@ void runGame() {
     main_menu_load();
     ui_open_menu(main_menu_get());
 
-    Civilization* civ = civilization_get_by_name("Armen's Colony");
-    civilization_spawn(gfc_vector3d(0, 0, 0), civ);
+    // Civilization* civ = civilization_get_by_name("Arkon Industrial Syndicate");
+    // civilization_spawn(gfc_vector3d(0, 0, 0), civ);
 
     // main game loop
     now = SDL_GetTicks() / 1000.f;
@@ -248,6 +250,8 @@ void parse_arguments(int argc,char *argv[])
             __DEBUG = 1;
         } else if (strcmp(argv[a],"--planet-editor") == 0) {
             editor = 1;
+        } else if (strcmp(argv[a],"--infinite-resources") == 0) {
+            _INF_RES = 1;
         }
     }    
 }

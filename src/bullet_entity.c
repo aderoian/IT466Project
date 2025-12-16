@@ -4,6 +4,7 @@
 
 #include "celestial_entity.h"
 #include "bullet_entity.h"
+#include "player.h"
 
 void bullet_think(Entity* entity) {
     if (!entity);
@@ -31,6 +32,9 @@ void bullet_on_collide(const CollisionInfo* info) {
     aData = other->data;
     if (strcmp(other->name, "asteroid") == 0) {
         aData->health -= bData->weapon->damage;
+        if (strcmp(bData->owner->name, "player") == 0) {
+            player_destroy_asteroid(bData->owner);
+        }
     }
 
     bullet->think = entity_free;

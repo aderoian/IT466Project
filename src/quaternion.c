@@ -99,8 +99,8 @@ void quaternion_rotate_v(GFC_Vector3D* dest, Quaternion q, GFC_Vector3D v) {
 
     Quaternion vq = { v.x, v.y, v.z, 0.0f }, q_conj, tmp;
     quaternion_conjugate(&q_conj, q);
-    quaternion_multiply_q(&tmp, q, vq);       // tmp = q * v
-    quaternion_multiply_q(&tmp, tmp, q_conj); // tmp = tmp * q*
+    quaternion_multiply_q(&tmp, q, vq);
+    quaternion_multiply_q(&tmp, tmp, q_conj);
 
     dest->x = tmp.x;
     dest->y = tmp.y;

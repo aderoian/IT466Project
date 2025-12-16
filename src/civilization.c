@@ -9,11 +9,6 @@
 #include "civilization.h"
 #include "player.h"
 
-typedef struct CivilizationList_s {
-    Civilization *civilizations;
-    int count;
-} CivilizationList;
-
 typedef struct CivilMenu_s {
     int numPages;
     int currPage;
@@ -126,9 +121,11 @@ const Civilization* civilization_get_by_name(const char *name) {
     return NULL;
 }
 
-Entity* civilization_spawn(GFC_Vector3D pos, const Civilization* civilization) {
+Entity* civilization_spawn(SolarSystemCiv *ssCiv) {
     CivilizationEntityData *data = NULL;
+    Civilization* civilization = ssCiv->civ;
     Entity* self;
+    GFC_Vector3D pos;
     if (!civilization) return NULL;
     
     self = entity_new();
@@ -138,21 +135,22 @@ Entity* civilization_spawn(GFC_Vector3D pos, const Civilization* civilization) {
     self->mesh = gf3d_mesh_load(civilization->model);
     self->texture = gf3d_texture_load(civilization->texture);
     self->color = GFC_COLOR_WHITE;
-    self->position = pos;
+    self->position = gfc_vector3d(ssCiv->pos.x * 120, ssCiv->pos.y * 120, 0);
+    self->scale = gfc_vector3d(27.5, 27.5, 27.5);
 
     data = (CivilizationEntityData*) gfc_allocate_array(sizeof(CivilizationEntityData), 1);
     data->civilization = civilization;
     self->data = data;
 
     self->physicsBody = physics_body_create();
-    self->physicsBody->position = pos;
+    self->physicsBody->position = self->position;
     self->physicsBody->mass = 10;
     self->physicsBody->invMass = 0;
     self->physicsBody->owner = self;
     self->physicsBody->flags |= FLAG_NO_COLLISION_RESOLUTION;
     self->physicsBody->shape.type = FLAG_AABB;
-    gfc_vector2d_copy(self->physicsBody->shape.Shape.aabb[0], gfc_vector3d(-1000, -1000, -1000));
-    gfc_vector2d_copy(self->physicsBody->shape.Shape.aabb[1], gfc_vector3d(1000, 1000, 1000));
+    gfc_vector2d_copy(self->physicsBody->shape.Shape.aabb[0], gfc_vector3d(-3000, -3000, -3000));
+    gfc_vector2d_copy(self->physicsBody->shape.Shape.aabb[1], gfc_vector3d(3000, 3000, 3000));
     return self;
 }
 
@@ -225,8 +223,8 @@ void civilization_mission_open(const Civilization* civ) {
 void civilization_trade_with(const Civilization* civ, const CivilTransaction* trade) {
     if (!civ || !trade || !player) return;
 
-    if (player_try_take_resource(player, &trade->take)) {
-        player_try_give_resource(player, &trade->give);
+    if (player_try_take_resource(player, &trade->give)) {
+        player_try_give_resource(player, &trade->take);
     }
 }
 
@@ -268,7 +266,7 @@ void civilization_trade_draw() {
             gf2d_font_draw_line_tag(buffer, FT_Small, GFC_COLOR_WHITE, pos);
 
             pos.y += 30;
-            sprintf(buffer, "Take:");
+            sprintf(buffer, "Get:");
             gf2d_font_draw_line_tag(buffer, FT_Small, GFC_COLOR_WHITE, pos);
             pos.y += 20;
             sprintf(buffer, "%s x%d", data->trans->take.resource->name, data->trans->take.amount);
@@ -294,17 +292,17 @@ void civilization_mission_draw() {
             ui_draw_element(tradeCard);
             data = (CardData*) tradeCard->data;
             gfc_vector2d_add(pos, data->pos, gfc_vector2d(25, 185));
-            sprintf(buffer, "Collect:");
+            sprintf(buffer, "Give:");
             gf2d_font_draw_line_tag(buffer, FT_Small, GFC_COLOR_WHITE, pos);
             pos.y += 20;
-            sprintf(buffer, "%s x%d", data->trans->take.resource->name, data->trans->take.amount);
+            sprintf(buffer, "%s x%d", data->trans->give.resource->name, data->trans->give.amount);
             gf2d_font_draw_line_tag(buffer, FT_Small, GFC_COLOR_WHITE, pos);
 
             pos.y += 30;
             sprintf(buffer, "Reward:");
             gf2d_font_draw_line_tag(buffer, FT_Small, GFC_COLOR_WHITE, pos);
             pos.y += 20;
-            sprintf(buffer, "%s x%d", data->trans->give.resource->name, data->trans->give.amount);
+            sprintf(buffer, "%s x%d", data->trans->take.resource->name, data->trans->take.amount);
             gf2d_font_draw_line_tag(buffer, FT_Small, GFC_COLOR_WHITE, pos);
         }
     }
